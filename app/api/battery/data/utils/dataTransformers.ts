@@ -12,6 +12,7 @@ export interface BatteryDataResponse {
   memberPhone: string;
   memberSerialNumber: string;
   complexName: string;
+  adr: string;
   totalCharge: number;
   lastReadDate: string;
   voltage: number;
@@ -139,6 +140,7 @@ export function transformMemberToBatteryData(member: any, complexName: string = 
   const memberName = member.Name || '';
   const memberPhone = member.PhoneNo || '';
   const memberSerialNumber = member.SerialNumber || '';
+  const adr = member.Adr || '';
 
   // Additional data
   const totalCharge = parseFloatSafe(member.TotalCharge);
@@ -163,6 +165,7 @@ export function transformMemberToBatteryData(member: any, complexName: string = 
     memberPhone,
     memberSerialNumber,
     complexName: complexName || '',
+    adr: adr || '',
     totalCharge,
     lastReadDate,
     voltage,

@@ -22,6 +22,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     email: '',
     phone: batteryData?.memberPhone || '-',
     address: batteryData?.complexName,
+    adr: batteryData?.adr,
     balance: batteryData?.currentBalance ? batteryData.currentBalance.toLocaleString('fa-IR') : '-',
     serialNumber: batteryData?.memberSerialNumber || '',
   };

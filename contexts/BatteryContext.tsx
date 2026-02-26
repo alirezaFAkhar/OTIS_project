@@ -20,6 +20,7 @@ interface BatteryData {
   memberPhone: string;
   memberSerialNumber: string;
   complexName: string;
+  adr: string;
   // Additional data
   totalCharge: number;
   lastReadDate: string;

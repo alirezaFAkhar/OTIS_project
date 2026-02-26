@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import toast, { Toaster } from 'react-hot-toast';
 import { Package } from './types';
-import { PACKAGES, BANKS } from './constants';
+import { BANKS } from './constants';
 import ChargeHeader from './components/ChargeHeader';
 import PackageSelection from './components/PackageSelection';
 import ManualAmountInput from './components/ManualAmountInput';
@@ -17,6 +17,38 @@ export default function ChargePage() {
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [selectedBank, setSelectedBank] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [packages, setPackages] = useState<Package[]>([]);
+  const [packagesLoading, setPackagesLoading] = useState(true);
+  const [packagesError, setPackagesError] = useState<string | null>(null);
+
+  // Fetch packages from API
+  useEffect(() => {
+    const fetchPackages = async () => {
+      setPackagesLoading(true);
+      setPackagesError(null);
+      try {
+        const response = await fetch('/api/payment-amounts', {
+          credentials: 'include',
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'خطا در دریافت بسته‌های شارژ');
+        }
+
+        const data = await response.json();
+        setPackages(data);
+      } catch (error: any) {
+        console.error('Error fetching packages:', error);
+        setPackagesError(error.message || 'خطا در دریافت بسته‌های شارژ');
+        toast.error('خطا در دریافت بسته‌های شارژ. لطفا صفحه را رفرش کنید.');
+      } finally {
+        setPackagesLoading(false);
+      }
+    };
+
+    fetchPackages();
+  }, []);
 
   // Handle callback from payment gateway
   useEffect(() => {
@@ -112,11 +144,21 @@ export default function ChargePage() {
         <ChargeHeader />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <PackageSelection
-            packages={PACKAGES}
-            selectedPackage={selectedPackage}
-            onSelect={handlePackageSelect}
-          />
+          {packagesLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <div className="text-gray-500">در حال بارگذاری بسته‌های شارژ...</div>
+            </div>
+          ) : packagesError ? (
+            <div className="flex items-center justify-center p-8">
+              <div className="text-red-500">{packagesError}</div>
+            </div>
+          ) : (
+            <PackageSelection
+              packages={packages}
+              selectedPackage={selectedPackage}
+              onSelect={handlePackageSelect}
+            />
+          )}
 
           <ManualAmountInput amount={amount} />
         </div>

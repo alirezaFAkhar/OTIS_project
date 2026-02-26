@@ -7,6 +7,7 @@ import { toPersianNumber } from '../dashboard/utils/numberUtils';
 interface UserData {
   name: string;
   address?: string;
+  adr?: string;
   phone?: string;
   serialNumber?: string;
   balance: string;
@@ -51,10 +52,20 @@ export default function Header({
                 <h2 className="font-bold text-gray-800 text-sm sm:text-base lg:text-lg truncate">
                   {user.name || 'کاربر'}
                 </h2>
-                {user.address && (
-                  <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-600">
-                    <MapPin size={12} className="sm:w-3.5 sm:h-3.5 shrink-0" />
-                    <span className="truncate">{user.address}</span>
+                {(user.address || user.adr) && (
+                  <div className="flex flex-col gap-1">
+                    {user.address && (
+                      <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-600">
+                        <MapPin size={12} className="sm:w-3.5 sm:h-3.5 shrink-0" />
+                        <span className="truncate">{user.address}</span>
+                      </div>
+                    )}
+                    {user.adr && (
+                      <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-600">
+                        <MapPin size={12} className="sm:w-3.5 sm:h-3.5 shrink-0" />
+                        <span className="truncate">{user.adr}</span>
+                      </div>
+                    )}
                   </div>
                 )}
                 {user.serialNumber && (

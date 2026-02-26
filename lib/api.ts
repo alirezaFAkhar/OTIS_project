@@ -8,15 +8,6 @@ const defaultFetchOptions: RequestInit = {
   },
 };
 
-// Verify token endpoint
-export async function verifyToken() {
-  const response = await fetch(`${API_BASE}/verify`, {
-    method: 'GET',
-    ...defaultFetchOptions,
-  });
-  return response.json();
-}
-
 export async function register(username: string, phone: string) {
   const response = await fetch(`${API_BASE}/register`, {
     method: 'POST',
@@ -27,15 +18,6 @@ export async function register(username: string, phone: string) {
 }
 
 export async function login(username: string, password: string) {
-  const response = await fetch('/api/members/login', {
-    method: 'POST',
-    ...defaultFetchOptions,
-    body: JSON.stringify({ username, password }),
-  });
-  return response.json();
-}
-
-export async function membersLogin(username: string, password: string) {
   const response = await fetch('/api/members/login', {
     method: 'POST',
     ...defaultFetchOptions,
@@ -67,15 +49,6 @@ export async function resetPassword(phone: string, code: string, password: strin
     method: 'POST',
     ...defaultFetchOptions,
     body: JSON.stringify({ phone, code, password }),
-  });
-  return response.json();
-}
-
-export async function adminLogin(username: string, password: string) {
-  const response = await fetch('/api/admin/login', {
-    method: 'POST',
-    ...defaultFetchOptions,
-    body: JSON.stringify({ username, password }),
   });
   return response.json();
 }
