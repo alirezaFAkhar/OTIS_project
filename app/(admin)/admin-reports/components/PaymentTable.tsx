@@ -5,9 +5,10 @@ import PaymentTableRow from './PaymentTableRow';
 
 interface PaymentTableProps {
   payments: Payment[];
+  getComplexName: (complexId: number | null) => string;
 }
 
-export default function PaymentTable({ payments }: PaymentTableProps) {
+export default function PaymentTable({ payments, getComplexName }: PaymentTableProps) {
   return (
     <div className="hidden lg:block overflow-x-auto -mx-4 sm:mx-0">
       <div className="inline-block min-w-full align-middle">
@@ -19,7 +20,10 @@ export default function PaymentTable({ payments }: PaymentTableProps) {
                   شناسه
                 </th>
                 <th className="px-3 sm:px-4 py-2 sm:py-3 text-right text-xs sm:text-sm font-semibold text-gray-700">
-                  شناسه کاربر
+                  کاربر
+                </th>
+                <th className="px-3 sm:px-4 py-2 sm:py-3 text-right text-xs sm:text-sm font-semibold text-gray-700">
+                  مجموعه
                 </th>
                 <th className="px-3 sm:px-4 py-2 sm:py-3 text-right text-xs sm:text-sm font-semibold text-gray-700">
                   تاریخ پرداخت
@@ -47,13 +51,17 @@ export default function PaymentTable({ payments }: PaymentTableProps) {
             <tbody>
               {payments.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-8 text-center text-gray-500 text-sm">
+                  <td colSpan={10} className="px-4 py-8 text-center text-gray-500 text-sm">
                     هیچ پرداختی یافت نشد
                   </td>
                 </tr>
               ) : (
                 payments.map((payment) => (
-                  <PaymentTableRow key={payment.Id} payment={payment} />
+                  <PaymentTableRow
+                    key={payment.Id}
+                    payment={payment}
+                    complexName={getComplexName(payment.ComplexId)}
+                  />
                 ))
               )}
             </tbody>
@@ -63,6 +71,18 @@ export default function PaymentTable({ payments }: PaymentTableProps) {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

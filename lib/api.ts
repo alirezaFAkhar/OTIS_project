@@ -17,11 +17,11 @@ export async function register(username: string, phone: string) {
   return response.json();
 }
 
-export async function login(username: string, password: string) {
+export async function login(username: string, password: string, rememberMe = false) {
   const response = await fetch('/api/members/login', {
     method: 'POST',
     ...defaultFetchOptions,
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ username, password, rememberMe }),
   });
   return response.json();
 }

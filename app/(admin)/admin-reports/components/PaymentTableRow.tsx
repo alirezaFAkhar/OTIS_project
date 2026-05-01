@@ -7,16 +7,40 @@ import PaymentStatusBadge from './PaymentStatusBadge';
 
 interface PaymentTableRowProps {
   payment: Payment;
+  complexName: string;
 }
 
-export default function PaymentTableRow({ payment }: PaymentTableRowProps) {
+export default function PaymentTableRow({ payment, complexName }: PaymentTableRowProps) {
+  const hasMemberId = payment.MemberId !== null && payment.MemberId !== undefined;
+  const memberName = payment.MemberName?.trim();
+  const memberUsername = payment.MemberUsername?.trim();
+  const memberPhone = payment.MemberPhone?.trim();
+
   return (
     <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
       <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-800">
         {toPersianNumber(payment.Id.toString())}
       </td>
       <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-800">
-        {payment.MemberId ? toPersianNumber(payment.MemberId.toString()) : '-'}
+        <div className="space-y-1">
+          <div className="font-mono" dir="ltr">
+            {/* {hasMemberId ? `ID: ${toPersianNumber(String(payment.MemberId))}` : '-'} */}
+          </div>
+          {memberName ? <div className="text-gray-700">{memberName}</div> : null}
+          {memberUsername ? (
+            <div className="text-gray-500">
+              {toPersianNumber(memberUsername).toString()}
+            </div>
+          ) : null}
+          {memberPhone ? (
+            <div className="text-gray-500 ">
+              {toPersianNumber(memberPhone).toString()}
+            </div>
+          ) : null}
+        </div>
+      </td>
+      <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-800">
+        {complexName}
       </td>
       <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-800">
         {formatDate(payment.PayDate)}
@@ -27,7 +51,7 @@ export default function PaymentTableRow({ payment }: PaymentTableRowProps) {
       <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-800">
         {payment.PayType || '-'}
       </td>
-      <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-800 font-mono">
+      <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-800">
         {payment.TrackingNumber ? toPersianNumber(payment.TrackingNumber) : '-'}
       </td>
       <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-800">
@@ -42,6 +66,18 @@ export default function PaymentTableRow({ payment }: PaymentTableRowProps) {
     </tr>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -29,7 +29,7 @@ export default function BatteryStatsCards({
             <Calendar className="text-blue-600" size={20} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-gray-600 text-xs sm:text-sm mb-1">زمان آخرین شارژ</p>
+            <p className="text-gray-600 text-xs sm:text-sm mb-1">زمان آخرین پرداختی</p>
             <p className="text-lg sm:text-xl font-bold text-gray-800 wrap-break-word">
               {toPersianNumber(lastChargeDate)}
             </p>
@@ -44,7 +44,7 @@ export default function BatteryStatsCards({
             <DollarSign className="text-green-600" size={20} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-gray-600 text-xs sm:text-sm mb-1">مبلغ آخرین شارژ</p>
+            <p className="text-gray-600 text-xs sm:text-sm mb-1">مبلغ آخرین پرداختی</p>
             <p className="text-lg sm:text-xl font-bold text-gray-800">
               {formatPersianNumber(lastChargeAmount)}
               <span className="text-xs sm:text-sm text-gray-600 mr-1">تومان</span>
@@ -60,7 +60,7 @@ export default function BatteryStatsCards({
             <CreditCard className="text-purple-600" size={20} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-gray-600 text-xs sm:text-sm mb-1">مانده اعتبار بعد از شارژ</p>
+            <p className="text-gray-600 text-xs sm:text-sm mb-1">مانده اعتبار بعد از پرداختی</p>
             <p className="text-lg sm:text-xl font-bold text-gray-800">
               {formatPersianNumber(balanceAfterCharge)}
               <span className="text-xs sm:text-sm text-gray-600 mr-1">تومان</span>

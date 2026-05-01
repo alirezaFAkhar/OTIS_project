@@ -7,8 +7,11 @@ import PaymentCardList from './components/PaymentCardList';
 import Pagination from './components/Pagination';
 import LoadingState from './components/LoadingState';
 import ErrorState from './components/ErrorState';
+import { useComplexes } from '../hooks/useComplexes';
 
 export default function AdminReportsPage() {
+  const { getComplexName } = useComplexes();
+
   const {
     payments,
     pagination,
@@ -50,7 +53,7 @@ export default function AdminReportsPage() {
           <ErrorState message={error} />
         ) : (
           <>
-            <PaymentTable payments={payments} />
+            <PaymentTable payments={payments} getComplexName={getComplexName} />
             <PaymentCardList payments={payments} />
             <Pagination pagination={pagination} onPageChange={handlePageChange} />
           </>

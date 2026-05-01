@@ -9,12 +9,14 @@ import PaymentTable from '@/app/(admin)/admin-reports/components/PaymentTable';
 import PaymentCardList from '@/app/(admin)/admin-reports/components/PaymentCardList';
 import { Payment } from '@/app/(admin)/admin-reports/types';
 import LoadingState from '@/app/(admin)/admin-reports/components/LoadingState';
+import { useComplexes } from '../hooks/useComplexes';
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<StatCard[]>(defaultStats);
   const [loading, setLoading] = useState(true);
   const [todayPayments, setTodayPayments] = useState<Payment[]>([]);
   const [paymentsLoading, setPaymentsLoading] = useState(true);
+  const { getComplexName } = useComplexes();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -116,7 +118,7 @@ export default function AdminDashboardPage() {
           </div>
         ) : (
           <>
-            <PaymentTable payments={todayPayments} />
+            <PaymentTable payments={todayPayments} getComplexName={getComplexName} />
             <PaymentCardList payments={todayPayments} />
           </>
         )}

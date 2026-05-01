@@ -68,3 +68,15 @@ export default function MemberCard({ member }: MemberCardProps) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+

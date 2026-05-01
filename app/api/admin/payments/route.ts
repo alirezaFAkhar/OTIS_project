@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import { getTenantFromHeaders } from '@/lib/tenant-middleware';
-import { getPaymentColumns } from '@/app/api/reports/payments/utils/columnHelpers';
+import { getPaymentColumns, safeColumnName } from '@/app/api/reports/payments/utils/columnHelpers';
 import { getDbClient, buildDateColumn, formatDateForMySQL } from '@/app/api/reports/payments/utils/queryBuilder';
 import { getPaymentsCountMSSQL, getPaymentsMSSQL } from '@/app/api/reports/payments/utils/mssqlQueries';
 import { getPaymentsCountMySQL, getPaymentsMySQL } from '@/app/api/reports/payments/utils/mysqlQueries';
@@ -54,12 +54,17 @@ export async function GET(request: NextRequest) {
     // Get column names
     const columns = getPaymentColumns();
     const dbClient = getDbClient();
+    const membersTable = safeColumnName(process.env.MEMBERS_TABLE, 'Members');
+    const membersIdColumn = safeColumnName(process.env.MEMBERS_ID_COLUMN, 'Id');
+    const membersNameColumn = safeColumnName(process.env.MEMBERS_NAME_COLUMN, 'Name');
+    const membersUsernameColumn = safeColumnName(process.env.MEMBERS_USERNAME_COLUMN, 'Username');
+    const membersPhoneColumn = safeColumnName(process.env.MEMBERS_PHONE_COLUMN, 'PhoneNo');
 
     // Build date column expression
     const dateColumn = buildDateColumn(
       dbClient,
-      columns.paymentsPayDateColumn,
-      columns.paymentsAddDateColumn
+      `p.${columns.paymentsPayDateColumn}`,
+      `p.${columns.paymentsAddDateColumn}`
     );
 
     // Build WHERE clause for admin (no memberId filter, but may have complexId filter)
@@ -88,9 +93,9 @@ export async function GET(request: NextRequest) {
     // Tracking number filter
     if (trackingNumberFilter) {
       if (dbClient === 'mssql') {
-        whereConditions.push(`${columns.paymentsTrackingNumberColumn} LIKE @trackingNumber`);
+        whereConditions.push(`p.${columns.paymentsTrackingNumberColumn} LIKE @trackingNumber`);
       } else {
-        whereConditions.push(`${columns.paymentsTrackingNumberColumn} LIKE ?`);
+        whereConditions.push(`p.${columns.paymentsTrackingNumberColumn} LIKE ?`);
         queryParams.push(`%${trackingNumberFilter}%`);
       }
     }
@@ -98,9 +103,9 @@ export async function GET(request: NextRequest) {
     // Status filter
     if (statusFilter) {
       if (dbClient === 'mssql') {
-        whereConditions.push(`${columns.paymentsStatusColumn} = @status`);
+        whereConditions.push(`p.${columns.paymentsStatusColumn} = @status`);
       } else {
-        whereConditions.push(`${columns.paymentsStatusColumn} = ?`);
+        whereConditions.push(`p.${columns.paymentsStatusColumn} = ?`);
         queryParams.push(statusFilter);
       }
     }
@@ -108,9 +113,9 @@ export async function GET(request: NextRequest) {
     // ComplexId filter - directly from Payments table
     if (complexIdFilter) {
       if (dbClient === 'mssql') {
-        whereConditions.push(`${columns.paymentsComplexIdColumn} = @complexId`);
+        whereConditions.push(`p.${columns.paymentsComplexIdColumn} = @complexId`);
       } else {
-        whereConditions.push(`${columns.paymentsComplexIdColumn} = ?`);
+        whereConditions.push(`p.${columns.paymentsComplexIdColumn} = ?`);
         queryParams.push(parseInt(complexIdFilter));
       }
     }
@@ -129,7 +134,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Count query
-        const countQuery = `SELECT COUNT(*) as total FROM ${columns.paymentsTable} WHERE ${whereClause}`;
+        const countQuery = `SELECT COUNT(*) as total FROM ${columns.paymentsTable} p WHERE ${whereClause}`;
         const countRequest = pool.request();
 
         if (fromDate) {
@@ -162,16 +167,21 @@ export async function GET(request: NextRequest) {
         // Data query
         const dataQuery = `
           SELECT 
-            Id,
-            ${columns.paymentsMemberIdColumn} as MemberId,
-            ${columns.paymentsPayDateColumn} as PayDate,
-            ${columns.paymentsAddDateColumn} as AddDate,
-            ${columns.paymentsPayTypeColumn} as PayType,
-            ${columns.paymentsTrackingNumberColumn} as TrackingNumber,
-            ${columns.paymentsAmountColumn} as Amount,
-            ${columns.paymentsCreditColumn} as Credit,
-            ${columns.paymentsStatusColumn} as Status
-          FROM ${columns.paymentsTable}
+            p.Id,
+            p.${columns.paymentsMemberIdColumn} as MemberId,
+            p.${columns.paymentsComplexIdColumn} as ComplexId,
+            p.${columns.paymentsPayDateColumn} as PayDate,
+            p.${columns.paymentsAddDateColumn} as AddDate,
+            p.${columns.paymentsPayTypeColumn} as PayType,
+            p.${columns.paymentsTrackingNumberColumn} as TrackingNumber,
+            p.${columns.paymentsAmountColumn} as Amount,
+            p.${columns.paymentsCreditColumn} as Credit,
+            p.${columns.paymentsStatusColumn} as Status,
+            m.${membersNameColumn} as MemberName,
+            m.${membersUsernameColumn} as MemberUsername,
+            m.${membersPhoneColumn} as MemberPhone
+          FROM ${columns.paymentsTable} p
+          LEFT JOIN ${membersTable} m ON m.${membersIdColumn} = p.${columns.paymentsMemberIdColumn}
           WHERE ${whereClause}
           ORDER BY ${dateColumn} DESC
           OFFSET @offset ROWS
@@ -225,23 +235,28 @@ export async function GET(request: NextRequest) {
         connection = await pool.getConnection();
 
         // Count query
-        const countQuery = `SELECT COUNT(*) as total FROM ${columns.paymentsTable} WHERE ${whereClause}`;
+        const countQuery = `SELECT COUNT(*) as total FROM ${columns.paymentsTable} p WHERE ${whereClause}`;
         const [countResult] = (await connection.query(countQuery, queryParams)) as any[];
         totalCount = countResult[0]?.total || 0;
 
         // Data query
         const dataQuery = `
           SELECT 
-            Id,
-            ${columns.paymentsMemberIdColumn} as MemberId,
-            ${columns.paymentsPayDateColumn} as PayDate,
-            ${columns.paymentsAddDateColumn} as AddDate,
-            ${columns.paymentsPayTypeColumn} as PayType,
-            ${columns.paymentsTrackingNumberColumn} as TrackingNumber,
-            ${columns.paymentsAmountColumn} as Amount,
-            ${columns.paymentsCreditColumn} as Credit,
-            ${columns.paymentsStatusColumn} as Status
-          FROM ${columns.paymentsTable}
+            p.Id,
+            p.${columns.paymentsMemberIdColumn} as MemberId,
+            p.${columns.paymentsComplexIdColumn} as ComplexId,
+            p.${columns.paymentsPayDateColumn} as PayDate,
+            p.${columns.paymentsAddDateColumn} as AddDate,
+            p.${columns.paymentsPayTypeColumn} as PayType,
+            p.${columns.paymentsTrackingNumberColumn} as TrackingNumber,
+            p.${columns.paymentsAmountColumn} as Amount,
+            p.${columns.paymentsCreditColumn} as Credit,
+            p.${columns.paymentsStatusColumn} as Status,
+            m.${membersNameColumn} as MemberName,
+            m.${membersUsernameColumn} as MemberUsername,
+            m.${membersPhoneColumn} as MemberPhone
+          FROM ${columns.paymentsTable} p
+          LEFT JOIN ${membersTable} m ON m.${membersIdColumn} = p.${columns.paymentsMemberIdColumn}
           WHERE ${whereClause}
           ORDER BY ${dateColumn} DESC
           LIMIT ? OFFSET ?

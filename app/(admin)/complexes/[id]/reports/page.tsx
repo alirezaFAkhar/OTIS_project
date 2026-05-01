@@ -95,7 +95,10 @@ export default function ComplexReportsPage() {
           <ErrorState message={error} />
         ) : (
           <>
-            <PaymentTable payments={payments} />
+            <PaymentTable
+              payments={payments}
+              getComplexName={() => (complexName ? complexName : '-')}
+            />
             <PaymentCardList payments={payments} />
             <Pagination pagination={pagination} onPageChange={handlePageChange} />
           </>

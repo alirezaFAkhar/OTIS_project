@@ -10,6 +10,11 @@ interface PaymentCardProps {
 }
 
 export default function PaymentCard({ payment }: PaymentCardProps) {
+  const hasMemberId = payment.MemberId !== null && payment.MemberId !== undefined;
+  const memberName = payment.MemberName?.trim();
+  const memberUsername = payment.MemberUsername?.trim();
+  const memberPhone = payment.MemberPhone?.trim();
+
   return (
     <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 space-y-3">
       <div className="flex items-center justify-between pb-2 border-b border-gray-200">
@@ -20,10 +25,23 @@ export default function PaymentCard({ payment }: PaymentCardProps) {
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <span className="text-xs text-gray-500 block mb-1">شناسه کاربر</span>
-          <span className="text-sm text-gray-800">
-            {payment.MemberId ? toPersianNumber(payment.MemberId.toString()) : '-'}
-          </span>
+          <span className="text-xs text-gray-500 block mb-1">کاربر</span>
+          <div className="space-y-1">
+            <div className="text-sm text-gray-800 font-mono" dir="ltr">
+              {hasMemberId ? `ID: ${toPersianNumber(String(payment.MemberId))}` : '-'}
+            </div>
+            {memberName ? <div className="text-xs text-gray-700">{memberName}</div> : null}
+            {memberUsername ? (
+              <div className="text-xs text-gray-500 font-mono" dir="ltr">
+                {memberUsername}
+              </div>
+            ) : null}
+            {memberPhone ? (
+              <div className="text-xs text-gray-500 font-mono" dir="ltr">
+                {toPersianNumber(memberPhone)}
+              </div>
+            ) : null}
+          </div>
         </div>
         <div>
           <span className="text-xs text-gray-500 block mb-1">نوع پرداخت</span>
@@ -65,6 +83,18 @@ export default function PaymentCard({ payment }: PaymentCardProps) {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

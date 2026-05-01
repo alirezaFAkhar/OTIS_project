@@ -1,6 +1,10 @@
 export interface Payment {
   Id: number;
-  MemberId: number;
+  MemberId: number | string | null;
+  MemberName?: string | null;
+  MemberUsername?: string | null;
+  MemberPhone?: string | null;
+  ComplexId: number | null;
   PayDate: string | null;
   AddDate: string | null;
   PayType: string;
@@ -23,6 +27,18 @@ export interface PaymentFilters {
   trackingNumber: string;
   status: string;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

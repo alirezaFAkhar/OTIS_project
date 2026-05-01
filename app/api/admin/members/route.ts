@@ -44,8 +44,25 @@ export async function GET(request: NextRequest) {
     const paymentsAmountColumn = safeColumnName(process.env.PAYMENTS_AMOUNT_COLUMN, 'PayedPrice');
     // Credit is the actual column name for balance
     const paymentsBalanceColumn = safeColumnName(process.env.PAYMENTS_BALANCE_COLUMN, 'Credit');
-    // AddDate is the actual column name for date (or PayDate for payment date)
-    const paymentsDateColumn = safeColumnName(process.env.PAYMENTS_DATE_COLUMN, 'AddDate');
+    // Date column can vary across schemas; support legacy and explicit env names
+    const paymentsPayDateColumn = safeColumnName(process.env.PAYMENTS_PAY_DATE_COLUMN, 'PayDate');
+    const paymentsAddDateColumn = safeColumnName(process.env.PAYMENTS_ADD_DATE_COLUMN, 'AddDate');
+    const paymentsDateColumn = safeColumnName(
+      process.env.PAYMENTS_DATE_COLUMN,
+      paymentsAddDateColumn
+    );
+    const paymentDateCandidates = Array.from(
+      new Set([paymentsDateColumn, paymentsPayDateColumn, paymentsAddDateColumn])
+    );
+    const paymentMemberIdCandidates = Array.from(
+      new Set([paymentsMemberIdColumn, membersIdColumn, 'MemberId'])
+    );
+    const paymentAmountCandidates = Array.from(
+      new Set([paymentsAmountColumn, 'PayedPrice', 'Amount'])
+    );
+    const paymentBalanceCandidates = Array.from(
+      new Set([paymentsBalanceColumn, 'Credit', 'BalanceAfterCharge'])
+    );
 
     let members: any[] = [];
     let totalCount = 0;
@@ -105,7 +122,7 @@ export async function GET(request: NextRequest) {
         try {
           // First, check if Payments table exists and has the required columns
           const checkTableQuery = `
-            SELECT COUNT(*) as exists
+            SELECT COUNT(*) as tableCount
             FROM INFORMATION_SCHEMA.TABLES 
             WHERE TABLE_NAME = @tableName
           `;
@@ -114,20 +131,39 @@ export async function GET(request: NextRequest) {
             .input('tableName', sql.NVarChar, paymentsTable)
             .query(checkTableQuery);
           
-          if (tableCheck.recordset[0].exists > 0) {
-            // Check if date column exists
-            const checkColumnQuery = `
-              SELECT COUNT(*) as exists
+          if (tableCheck.recordset[0].tableCount > 0) {
+            // Pick the first available date column among configured candidates
+            const columnsQuery = `
+              SELECT COLUMN_NAME
               FROM INFORMATION_SCHEMA.COLUMNS
-              WHERE TABLE_NAME = @tableName AND COLUMN_NAME = @columnName
+              WHERE TABLE_NAME = @tableName
             `;
-            const columnCheck = await pool
+            const columnsResult = await pool
               .request()
               .input('tableName', sql.NVarChar, paymentsTable)
-              .input('columnName', sql.NVarChar, paymentsDateColumn)
-              .query(checkColumnQuery);
-            
-            if (columnCheck.recordset[0].exists > 0) {
+              .query(columnsQuery);
+            const existingColumns = new Set(
+              columnsResult.recordset.map((col: any) => col.COLUMN_NAME)
+            );
+            const resolvedMemberIdColumn = paymentMemberIdCandidates.find((col) =>
+              existingColumns.has(col)
+            );
+            const resolvedAmountColumn = paymentAmountCandidates.find((col) =>
+              existingColumns.has(col)
+            );
+            const resolvedBalanceColumn = paymentBalanceCandidates.find((col) =>
+              existingColumns.has(col)
+            );
+            const resolvedDateColumn = paymentDateCandidates.find((col) =>
+              existingColumns.has(col)
+            );
+
+            if (
+              resolvedDateColumn &&
+              resolvedMemberIdColumn &&
+              resolvedAmountColumn &&
+              resolvedBalanceColumn
+            ) {
               // Get members with latest payment data
               query = `
                 SELECT 
@@ -137,17 +173,17 @@ export async function GET(request: NextRequest) {
                   m.${phoneColumn} as phone,
                   m.${isActiveColumn} as isActive,
                   m.${nameColumn} as name,
-                  p.${paymentsBalanceColumn} as balanceAfterCharge,
-                  p.${paymentsAmountColumn} as amount
+                  p.${resolvedBalanceColumn} as balanceAfterCharge,
+                  p.${resolvedAmountColumn} as amount
                 FROM ${membersTable} m
                 LEFT JOIN (
                   SELECT 
-                    ${paymentsMemberIdColumn},
-                    ${paymentsBalanceColumn},
-                    ${paymentsAmountColumn},
-                    ROW_NUMBER() OVER (PARTITION BY ${paymentsMemberIdColumn} ORDER BY ${paymentsDateColumn} DESC) as rn
+                    ${resolvedMemberIdColumn},
+                    ${resolvedBalanceColumn},
+                    ${resolvedAmountColumn},
+                    ROW_NUMBER() OVER (PARTITION BY ${resolvedMemberIdColumn} ORDER BY ${resolvedDateColumn} DESC) as rn
                   FROM ${paymentsTable}
-                ) p ON m.${membersIdColumn} = p.${paymentsMemberIdColumn} AND p.rn = 1
+                ) p ON m.${membersIdColumn} = p.${resolvedMemberIdColumn} AND p.rn = 1
                 ${whereClause}
                 ORDER BY m.${membersIdColumn}
                 OFFSET ${offset} ROWS
@@ -242,23 +278,43 @@ export async function GET(request: NextRequest) {
         try {
           // Check if Payments table exists
           const [tableCheck] = await connection.query(
-            `SELECT COUNT(*) as exists
+            `SELECT COUNT(*) as tableCount
              FROM INFORMATION_SCHEMA.TABLES 
              WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?`,
             [paymentsTable]
           ) as any[];
           
-          if (tableCheck[0]?.exists > 0) {
-            // Check if date column exists
-            const [columnCheck] = await connection.query(
-              `SELECT COUNT(*) as exists
+          if (tableCheck[0]?.tableCount > 0) {
+            // Pick the first available date column among configured candidates
+            const [columnRows] = await connection.query(
+              `SELECT COLUMN_NAME
                FROM INFORMATION_SCHEMA.COLUMNS
                WHERE TABLE_SCHEMA = DATABASE() 
-               AND TABLE_NAME = ? AND COLUMN_NAME = ?`,
-              [paymentsTable, paymentsDateColumn]
+               AND TABLE_NAME = ?`,
+              [paymentsTable]
             ) as any[];
-            
-            if (columnCheck[0]?.exists > 0) {
+            const existingColumns = new Set(
+              (columnRows || []).map((col: any) => col.COLUMN_NAME)
+            );
+            const resolvedMemberIdColumn = paymentMemberIdCandidates.find((col) =>
+              existingColumns.has(col)
+            );
+            const resolvedAmountColumn = paymentAmountCandidates.find((col) =>
+              existingColumns.has(col)
+            );
+            const resolvedBalanceColumn = paymentBalanceCandidates.find((col) =>
+              existingColumns.has(col)
+            );
+            const resolvedDateColumn = paymentDateCandidates.find((col) =>
+              existingColumns.has(col)
+            );
+
+            if (
+              resolvedDateColumn &&
+              resolvedMemberIdColumn &&
+              resolvedAmountColumn &&
+              resolvedBalanceColumn
+            ) {
               // Get members with latest payment data
               query = `
                 SELECT 
@@ -268,24 +324,24 @@ export async function GET(request: NextRequest) {
                   m.${phoneColumn} as phone,
                   m.${isActiveColumn} as isActive,
                   m.${nameColumn} as name,
-                  p.${paymentsBalanceColumn} as balanceAfterCharge,
-                  p.${paymentsAmountColumn} as amount
+                  p.${resolvedBalanceColumn} as balanceAfterCharge,
+                  p.${resolvedAmountColumn} as amount
                 FROM ${membersTable} m
                 LEFT JOIN (
                   SELECT 
-                    p1.${paymentsMemberIdColumn},
-                    p1.${paymentsBalanceColumn},
-                    p1.${paymentsAmountColumn}
+                    p1.${resolvedMemberIdColumn},
+                    p1.${resolvedBalanceColumn},
+                    p1.${resolvedAmountColumn}
                   FROM ${paymentsTable} p1
                   INNER JOIN (
                     SELECT 
-                      ${paymentsMemberIdColumn},
-                      MAX(${paymentsDateColumn}) as maxDate
+                      ${resolvedMemberIdColumn},
+                      MAX(${resolvedDateColumn}) as maxDate
                     FROM ${paymentsTable}
-                    GROUP BY ${paymentsMemberIdColumn}
-                  ) p2 ON p1.${paymentsMemberIdColumn} = p2.${paymentsMemberIdColumn}
-                  AND p1.${paymentsDateColumn} = p2.maxDate
-                ) p ON m.${membersIdColumn} = p.${paymentsMemberIdColumn}
+                    GROUP BY ${resolvedMemberIdColumn}
+                  ) p2 ON p1.${resolvedMemberIdColumn} = p2.${resolvedMemberIdColumn}
+                  AND p1.${resolvedDateColumn} = p2.maxDate
+                ) p ON m.${membersIdColumn} = p.${resolvedMemberIdColumn}
                 ${whereClause}
                 ORDER BY m.${membersIdColumn}
                 LIMIT ? OFFSET ?
@@ -338,8 +394,9 @@ export async function GET(request: NextRequest) {
       phone: member.phone || member[phoneColumn] || '',
       isActive: member.isActive !== undefined ? Boolean(member.isActive) : (member[isActiveColumn] !== undefined ? Boolean(member[isActiveColumn]) : true),
       name: member.name || member[nameColumn] || '',
-      balanceAfterCharge: member.balanceAfterCharge || member[paymentsBalanceColumn] || 0,
-      amount: member.amount || member[paymentsAmountColumn] || 0,
+      balanceAfterCharge:
+        member.balanceAfterCharge ?? member[paymentsBalanceColumn] ?? 0,
+      amount: member.amount ?? member[paymentsAmountColumn] ?? 0,
     }));
 
     return NextResponse.json({

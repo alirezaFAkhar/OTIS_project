@@ -16,7 +16,7 @@ export function getPaymentColumns() {
     paymentsTable: safeColumnName(process.env.PAYMENTS_TABLE, 'Payments'),
     paymentsMemberIdColumn: safeColumnName(
       process.env.PAYMENTS_MEMBER_ID_COLUMN,
-      membersIdColumn
+      'MemberId'
     ),
     paymentsComplexIdColumn: safeColumnName(
       process.env.PAYMENTS_COMPLEX_ID_COLUMN,

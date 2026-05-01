@@ -55,12 +55,16 @@ export default function DashboardPage() {
   return (
     <div className="space-y-4 sm:space-y-6 px-2 sm:px-0 max-w-full box-border">
       {/* Top Statistics Cards */}
-      <BatteryStatsCards
-        lastChargeDate={data.lastChargeDate}
-        lastChargeAmount={data.lastChargeAmount}
-        balanceAfterCharge={data.balanceAfterCharge}
-      />
-
+      <div className='w-full h-full hidden lg:block'>
+        <BatteryStatsCards
+          lastChargeDate={data.lastChargeDate}
+          lastChargeAmount={data.lastChargeAmount}
+          balanceAfterCharge={data.balanceAfterCharge}
+        />
+      </div>
+      <div className='w-full h-full flex lg:hidden'>
+        <BalanceBox data={data} />
+      </div>
       {/* Battery Visualization Section */}
       <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6 lg:p-8 overflow-hidden max-w-full box-border">
         <div className="flex flex-col lg:flex-row items-center justify-center gap-6 sm:gap-8 lg:gap-16 relative">
@@ -70,10 +74,18 @@ export default function DashboardPage() {
           </div>
 
           {/* Balance Box with Arrow */}
-          <div className="shrink-0 w-full h-full lg:w-auto lg:h-auto min-h-[180px] lg:min-h-0">
+          <div className="shrink-0 hidden lg:flex w-full h-full lg:w-auto lg:h-auto min-h-[180px] lg:min-h-0">
             <BalanceBox data={data} />
           </div>
         </div>
+
+      </div>
+      <div className='block lg:hidden max-w-full'>
+        <BatteryStatsCards
+          lastChargeDate={data.lastChargeDate}
+          lastChargeAmount={data.lastChargeAmount}
+          balanceAfterCharge={data.balanceAfterCharge}
+        />
       </div>
 
       {/* More Details Section (Collapsible) */}

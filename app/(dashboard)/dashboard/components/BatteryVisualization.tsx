@@ -44,7 +44,7 @@ export default function BatteryVisualization({
         <div className="mx-auto w-32 h-6 bg-gray-800 rounded-t-lg mb-1.5"></div>
 
         {/* Battery Segments */}
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1.5 border-4 !border-gray-950 rounded-2xl">
           {Array.from({ length: segmentsCount }).map((_, index) => {
             const segmentIndex = segmentsCount - 1 - index; // از بالا به پایین
             const isFilled = segmentIndex < filledSegments;
@@ -53,9 +53,9 @@ export default function BatteryVisualization({
             return (
               <div
                 key={index}
-                className="relative w-64 h-12 rounded-lg border-3 border-gray-800 overflow-hidden bg-gray-200"
+                className="relative h-9 w-64 lg:h-12  rounded-lg border-3 border-gray-300 overflow-hidden bg-gray-300"
                 style={{
-                  opacity: isFilled || isPartial ? 1 : 0.3,
+                  opacity: isFilled || isPartial ? 1 : 1,
                 }}
               >
                 {(isFilled || isPartial) && (

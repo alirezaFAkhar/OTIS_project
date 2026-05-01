@@ -17,6 +17,7 @@ import { isMemberPasswordValid } from './utils/passwordValidation';
 const loginSchema = z.object({
   username: z.string().min(1, 'نام کاربری الزامی است'),
   password: z.string().min(1, 'رمز عبور الزامی است'),
+  rememberMe: z.boolean().optional().default(false),
 });
 
 /**
@@ -158,7 +159,7 @@ export async function POST(request: NextRequest) {
   try {
     // Parse and validate request body
     const body = await request.json();
-    const { username, password } = loginSchema.parse(body);
+    const { username, password, rememberMe } = loginSchema.parse(body);
 
     // Get tenant info
     const tenantInfo = await getTenantFromHeaders(request);
@@ -200,7 +201,7 @@ export async function POST(request: NextRequest) {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7, // 7 days
+        ...(rememberMe ? { maxAge: 60 * 60 * 24 * 7 } : {}),
       });
 
       return response;
@@ -275,7 +276,7 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      ...(rememberMe ? { maxAge: 60 * 60 * 24 * 7 } : {}),
     });
 
     return response;

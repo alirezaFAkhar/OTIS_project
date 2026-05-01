@@ -64,6 +64,7 @@ export async function GET(request: NextRequest) {
           SELECT 
             Id,
             ${columns.paymentsMemberIdColumn} as MemberId,
+            ${columns.paymentsComplexIdColumn} as ComplexId,
             ${columns.paymentsPayDateColumn} as PayDate,
             ${columns.paymentsAddDateColumn} as AddDate,
             ${columns.paymentsPayTypeColumn} as PayType,
@@ -102,6 +103,7 @@ export async function GET(request: NextRequest) {
           SELECT 
             Id,
             ${columns.paymentsMemberIdColumn} as MemberId,
+            ${columns.paymentsComplexIdColumn} as ComplexId,
             ${columns.paymentsPayDateColumn} as PayDate,
             ${columns.paymentsAddDateColumn} as AddDate,
             ${columns.paymentsPayTypeColumn} as PayType,
@@ -151,6 +153,11 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+
+
+
+
 
 
 

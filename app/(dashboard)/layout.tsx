@@ -44,12 +44,12 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       icon: LayoutDashboard,
     },
     {
-      title: 'گزارش‌ شارژ',
+      title: 'گزارش‌ مالی',
       href: '/reports',
       icon: FileText,
     },
     {
-      title: 'شارژ حساب',
+      title: 'افزایش اعتبار',
       href: '/charge',
       icon: CreditCard,
     },
