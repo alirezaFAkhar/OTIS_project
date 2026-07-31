@@ -36,6 +36,7 @@ interface AdminSidebarProps {
 
 function ComplexMenu({ complex, isOpen, onToggle, sidebarOpen, isActive }: ComplexMenuItem) {
   const submenuItems = [
+    { title: 'اطلاعات مجموعه', href: `/complexes/${complex.id}/info`, icon: FileText },
     { title: 'کاربران', href: `/complexes/${complex.id}/users`, icon: Users },
     { title: 'گزارش‌ها', href: `/complexes/${complex.id}/reports`, icon: FileText },
   ];

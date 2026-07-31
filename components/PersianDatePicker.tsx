@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Calendar, X } from 'lucide-react';
 import { toPersianNumber } from '@/app/(dashboard)/dashboard/utils/numberUtils';
+import { toEnglishDigits } from '@/lib/digits';
 
 interface PersianDatePickerProps {
   value: string;
@@ -77,7 +78,7 @@ function formatDateForInput(year: number, month: number, day: number): string {
 // Parse YYYY-MM-DD (Gregorian) to Jalali
 function parseInputDate(dateStr: string): [number, number, number] | null {
   if (!dateStr) return null;
-  const [year, month, day] = dateStr.split('-').map(Number);
+  const [year, month, day] = toEnglishDigits(dateStr).split('-').map(Number);
   if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
   // Convert Gregorian to Jalali
   return gregorianToJalali(year, month, day);

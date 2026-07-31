@@ -8,6 +8,7 @@ import { getPaymentsCountMySQL, getPaymentsMySQL } from '@/app/api/reports/payme
 import { translatePayType } from '@/app/api/reports/payments/utils/payTypeTranslator';
 import sql from 'mssql';
 import pool from '@/lib/db';
+import { toEnglishDigits } from '@/lib/digits';
 
 /**
  * GET /api/admin/payments
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const offset = (page - 1) * limit;
-    const trackingNumberFilter = searchParams.get('trackingNumber') || '';
+    const trackingNumberFilter = toEnglishDigits(searchParams.get('trackingNumber') || '');
     const statusFilter = searchParams.get('status') || '';
     const complexIdFilter = searchParams.get('complexId');
 

@@ -4,10 +4,11 @@ import { generateToken } from '@/lib/auth';
 import { getTenantFromHeaders } from '@/lib/tenant-middleware';
 import { z } from 'zod';
 import sql from 'mssql';
+import { zDigitCode, zEnglishDigitsString } from '@/lib/digits';
 
 const verifySchema = z.object({
-  phone: z.string(),
-  code: z.string().length(6, 'کد تایید باید 6 رقم باشد'),
+  phone: zEnglishDigitsString(),
+  code: zDigitCode(6, 'کد تایید باید 6 رقم باشد'),
 });
 
 function safeColumnName(value: string | undefined, fallback: string): string {

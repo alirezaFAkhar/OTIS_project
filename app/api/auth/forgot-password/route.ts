@@ -4,10 +4,11 @@ import { generateOTP } from '@/lib/auth';
 import { getTenantFromHeaders } from '@/lib/tenant-middleware';
 import { z } from 'zod';
 import sql from 'mssql';
+import { zIranPhone } from '@/lib/digits';
 
 const forgotPasswordSchema = z.object({
   username: z.string().min(1, 'نام کاربری الزامی است'),
-  phone: z.string().regex(/^09\d{9}$/, 'شماره تلفن معتبر نیست'),
+  phone: zIranPhone(),
 });
 
 function safeColumnName(value: string | undefined, fallback: string): string {

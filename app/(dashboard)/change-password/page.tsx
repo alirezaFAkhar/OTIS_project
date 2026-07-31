@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
+import { Input } from '@/components/ui/input';
 
 export default function ChangePasswordPage() {
   const [password, setPassword] = useState('');
@@ -73,12 +74,12 @@ export default function ChangePasswordPage() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               رمز عبور جدید
             </label>
-            <input
+            <Input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="رمز عبور جدید را وارد کنید"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg h-auto"
               minLength={6}
               required
               dir="rtl"
@@ -93,12 +94,12 @@ export default function ChangePasswordPage() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               تکرار رمز عبور
             </label>
-            <input
+            <Input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="رمز عبور را تکرار کنید"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg h-auto"
               minLength={6}
               required
               dir="rtl"

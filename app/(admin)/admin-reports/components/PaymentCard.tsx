@@ -10,7 +10,6 @@ interface PaymentCardProps {
 }
 
 export default function PaymentCard({ payment }: PaymentCardProps) {
-  const hasMemberId = payment.MemberId !== null && payment.MemberId !== undefined;
   const memberName = payment.MemberName?.trim();
   const memberUsername = payment.MemberUsername?.trim();
   const memberPhone = payment.MemberPhone?.trim();
@@ -26,20 +25,29 @@ export default function PaymentCard({ payment }: PaymentCardProps) {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <span className="text-xs text-gray-500 block mb-1">کاربر</span>
-          <div className="space-y-1">
-            <div className="text-sm text-gray-800 font-mono" dir="ltr">
-              {hasMemberId ? `ID: ${toPersianNumber(String(payment.MemberId))}` : '-'}
-            </div>
-            {memberName ? <div className="text-xs text-gray-700">{memberName}</div> : null}
-            {memberUsername ? (
-              <div className="text-xs text-gray-500 font-mono" dir="ltr">
-                {memberUsername}
+          <div className="flex justify-between items-start gap-3 w-full">
+            {(memberUsername || memberPhone) && (
+              <div className="flex flex-col gap-1 shrink-0 text-end" dir="ltr">
+                {memberUsername ? (
+                  <div className="text-xs text-gray-500">{toPersianNumber(memberUsername.toString())}</div>
+                ) : null}
+                {memberPhone ? (
+                  <div className="text-xs text-gray-500">
+                    {toPersianNumber(memberPhone)}
+                  </div>
+                ) : null}
               </div>
-            ) : null}
-            {memberPhone ? (
-              <div className="text-xs text-gray-500 font-mono" dir="ltr">
-                {toPersianNumber(memberPhone)}
+            )}
+            {memberName ? (
+              <div
+                className={`text-xs text-gray-700 min-w-0 text-right ${
+                  memberUsername || memberPhone ? 'flex-1' : 'w-full'
+                }`}
+              >
+                {memberName}
               </div>
+            ) : !(memberUsername || memberPhone) ? (
+              <span className="text-xs text-gray-400">—</span>
             ) : null}
           </div>
         </div>
@@ -57,7 +65,7 @@ export default function PaymentCard({ payment }: PaymentCardProps) {
         </div>
         <div>
           <span className="text-xs text-gray-500 block mb-1">کد پیگیری</span>
-          <span className="text-sm text-gray-800 font-mono">
+          <span className="text-sm text-gray-800">
             {payment.TrackingNumber ? toPersianNumber(payment.TrackingNumber) : '-'}
           </span>
         </div>

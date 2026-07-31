@@ -4,10 +4,11 @@ import { generateOTP } from '@/lib/auth';
 import { getTenantFromHeaders } from '@/lib/tenant-middleware';
 import { z } from 'zod';
 import sql from 'mssql';
+import { zIranPhone } from '@/lib/digits';
 
 const registerSchema = z.object({
   username: z.string().min(3, 'نام کاربری باید حداقل 3 کاراکتر باشد'),
-  phone: z.string().regex(/^09\d{9}$/, 'شماره تلفن معتبر نیست'),
+  phone: zIranPhone(),
 });
 
 function safeColumnName(value: string | undefined, fallback: string): string {

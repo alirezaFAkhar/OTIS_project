@@ -11,7 +11,6 @@ interface PaymentTableRowProps {
 }
 
 export default function PaymentTableRow({ payment, complexName }: PaymentTableRowProps) {
-  const hasMemberId = payment.MemberId !== null && payment.MemberId !== undefined;
   const memberName = payment.MemberName?.trim();
   const memberUsername = payment.MemberUsername?.trim();
   const memberPhone = payment.MemberPhone?.trim();
@@ -22,20 +21,25 @@ export default function PaymentTableRow({ payment, complexName }: PaymentTableRo
         {toPersianNumber(payment.Id.toString())}
       </td>
       <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-800">
-        <div className="space-y-1">
-          <div className="font-mono" dir="ltr">
-            {/* {hasMemberId ? `ID: ${toPersianNumber(String(payment.MemberId))}` : '-'} */}
-          </div>
-          {memberName ? <div className="text-gray-700">{memberName}</div> : null}
-          {memberUsername ? (
-            <div className="text-gray-500">
-              {toPersianNumber(memberUsername).toString()}
+        <div className="flex  flex-col-reverse justify-between items-start gap-3">
+          {(memberUsername || memberPhone) && (
+            <div className="flex flex-col gap-1 shrink-0 text-end text-xs text-gray-500" dir="ltr">
+              {memberUsername ? (
+                <div className="">{toPersianNumber(memberUsername)}</div>
+              ) : null}
+              {memberPhone ? (
+                <div className="">{toPersianNumber(memberPhone)}</div>
+              ) : null}
             </div>
-          ) : null}
-          {memberPhone ? (
-            <div className="text-gray-500 ">
-              {toPersianNumber(memberPhone).toString()}
+          )}
+          {memberName ? (
+            <div
+              className={`text-gray-700 ${memberUsername || memberPhone ? 'flex-1 text-right min-w-0' : 'w-full text-right'}`}
+            >
+              {memberName}
             </div>
+          ) : !(memberUsername || memberPhone) ? (
+            <span className="text-gray-400">—</span>
           ) : null}
         </div>
       </td>

@@ -1,5 +1,29 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import {
+  ENTRY_COOKIE_NAME,
+  evaluateReferrerGate,
+  readReferrerGateConfigFromEnv,
+  shouldSkipReferrerGatePath,
+} from '@/lib/referrer-gate';
+
+function isLocalDevHost(host: string): boolean {
+  const hostname = host.split(':')[0].toLowerCase();
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.local');
+}
+
+function shouldBypassReferrerGate(request: NextRequest): boolean {
+  if (
+    process.env.NODE_ENV === 'development' &&
+    process.env.REFERRER_GATE_BYPASS_IN_DEV?.trim().toLowerCase() === 'true'
+  ) {
+    return true;
+  }
+  if (process.env.REFERRER_GATE_BYPASS_LOCALHOST?.trim().toLowerCase() !== 'true') {
+    return false;
+  }
+  return isLocalDevHost(request.headers.get('host') || '');
+}
 
 function parseTenantId(value: string | undefined | null): string | null {
   if (!value) return null;
@@ -49,8 +73,6 @@ function resolveTenantId(host: string, currentHeaderTenantId: string | null): st
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Ignore requests for non-existent assets (Android icons, etc.)
-  // These are often auto-requested by browsers or bookmarks
   if (
     pathname.startsWith('/assets/') ||
     pathname.startsWith('/images/icon/') ||
@@ -60,40 +82,77 @@ export function middleware(request: NextRequest) {
     return new NextResponse(null, { status: 404 });
   }
 
+  const gateConfig = readReferrerGateConfigFromEnv();
+
+  if (!shouldBypassReferrerGate(request)) {
+    const decision = evaluateReferrerGate({
+      pathname,
+      requestOrigin: request.nextUrl.origin,
+      method: request.method,
+      headers: request.headers,
+      cookies: request.cookies,
+      config: gateConfig,
+    });
+
+    if (decision.action === 'block') {
+      if (decision.redirectUrl) {
+        return NextResponse.redirect(decision.redirectUrl);
+      }
+      return new NextResponse('Forbidden', { status: 403 });
+    }
+
+    const host = request.headers.get('host') || '';
+    const hostWithoutPort = host.split(':')[0];
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-tenant-domain', hostWithoutPort);
+    const parts = hostWithoutPort.split('.');
+    if (parts.length >= 3) {
+      requestHeaders.set('x-tenant-subdomain', parts[0]);
+    }
+
+    const resolvedTenantId = resolveTenantId(host, request.headers.get('x-tenant-id'));
+    if (resolvedTenantId) {
+      requestHeaders.set('x-tenant-id', resolvedTenantId);
+    }
+
+    const response = NextResponse.next({
+      request: { headers: requestHeaders },
+    });
+
+    if (decision.action === 'allow' && 'setEntryCookie' in decision && decision.setEntryCookie) {
+      response.cookies.set(ENTRY_COOKIE_NAME, '1', {
+        path: '/',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: gateConfig.cookieMaxAge,
+      });
+    }
+
+    return response;
+  }
+
   const host = request.headers.get('host') || '';
   const hostWithoutPort = host.split(':')[0];
   const requestHeaders = new Headers(request.headers);
-
-  // Always pass host-derived tenant hints to API handlers.
   requestHeaders.set('x-tenant-domain', hostWithoutPort);
   const parts = hostWithoutPort.split('.');
   if (parts.length >= 3) {
     requestHeaders.set('x-tenant-subdomain', parts[0]);
   }
 
-  // Tenant resolution is automatic from host mappings + default fallback.
   const resolvedTenantId = resolveTenantId(host, request.headers.get('x-tenant-id'));
   if (resolvedTenantId) {
     requestHeaders.set('x-tenant-id', resolvedTenantId);
   }
 
   return NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
+    request: { headers: requestHeaders },
   });
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public assets (svg, png, jpg, etc.)
-     */
     '/((?!_next/static|_next/image|favicon\\.ico).*)',
   ],
 };
-

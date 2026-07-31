@@ -17,6 +17,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [complexName, setComplexName] = useState<string | null>(null);
+  const [complexEnamad, setComplexEnamad] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -27,6 +29,19 @@ export default function LoginPage() {
       setUsername(rememberedUsername);
       setRememberMe(true);
     }
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/complex/public-info')
+      .then((res) => res.json())
+      .then((data) => {
+        setComplexName(data.name ?? null);
+        setComplexEnamad(data.enamad ?? null);
+      })
+      .catch(() => {
+        setComplexName(null);
+        setComplexEnamad(null);
+      });
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -66,6 +81,11 @@ export default function LoginPage() {
           <CardTitle className="text-3xl font-bold text-gray-800">
             ورود به سیستم
           </CardTitle>
+          {complexName && (
+            <CardDescription className="text-lg font-medium text-gray-700">
+              {complexName}
+            </CardDescription>
+          )}
           <CardDescription className="text-base text-gray-600">
             لطفا نام کاربری و رمز عبور خود را وارد کنید
           </CardDescription>
@@ -148,6 +168,12 @@ export default function LoginPage() {
               رمز عبور را فراموش کرده‌اید؟
             </Link>
           </div>
+          {complexEnamad && (
+            <div
+              className="mt-6 flex justify-center"
+              dangerouslySetInnerHTML={{ __html: complexEnamad }}
+            />
+          )}
         </CardContent>
       </Card>
 

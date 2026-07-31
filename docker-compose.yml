@@ -5,6 +5,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        REFERRER_GATE_ENABLED: "true"
+        REFERRER_GATE_ALLOWED_URLS: "https://asiaotis.ir,https://www.asiaotis.ir"
+        REFERRER_GATE_REDIRECT_URL: "https://asiaotis.ir/"
+        REFERRER_GATE_ALLOW_DIRECT_NAVIGATION: "false"
     container_name: otis-app
     ports:
       - "3000:3000"

@@ -23,11 +23,12 @@ export interface TenantConfig {
 export async function getTenantBySubdomain(subdomain: string): Promise<Tenant | null> {
   try {
     const connection = await pool.getConnection();
-    const [tenants] = await connection.query(
+    const qr = await connection.query(
       'SELECT * FROM tenants WHERE subdomain = ? AND is_active = TRUE',
-      [subdomain]
-    ) as Tenant[];
+      [subdomain],
+    );
     connection.release();
+    const tenants = qr[0] as Tenant[];
     return tenants.length > 0 ? tenants[0] : null;
   } catch (error) {
     console.error('Error getting tenant by subdomain:', error);
@@ -41,11 +42,9 @@ export async function getTenantBySubdomain(subdomain: string): Promise<Tenant | 
 export async function getTenantByDomain(domain: string): Promise<Tenant | null> {
   try {
     const connection = await pool.getConnection();
-    const [tenants] = await connection.query(
-      'SELECT * FROM tenants WHERE domain = ? AND is_active = TRUE',
-      [domain]
-    ) as Tenant[];
+    const qr = await connection.query('SELECT * FROM tenants WHERE domain = ? AND is_active = TRUE', [domain]);
     connection.release();
+    const tenants = qr[0] as Tenant[];
     return tenants.length > 0 ? tenants[0] : null;
   } catch (error) {
     console.error('Error getting tenant by domain:', error);
@@ -59,11 +58,9 @@ export async function getTenantByDomain(domain: string): Promise<Tenant | null> 
 export async function getTenantById(tenantId: number): Promise<Tenant | null> {
   try {
     const connection = await pool.getConnection();
-    const [tenants] = await connection.query(
-      'SELECT * FROM tenants WHERE id = ? AND is_active = TRUE',
-      [tenantId]
-    ) as Tenant[];
+    const qr = await connection.query('SELECT * FROM tenants WHERE id = ? AND is_active = TRUE', [tenantId]);
     connection.release();
+    const tenants = qr[0] as Tenant[];
     return tenants.length > 0 ? tenants[0] : null;
   } catch (error) {
     console.error('Error getting tenant by ID:', error);
@@ -108,11 +105,12 @@ export async function getTenantConfig(
 ): Promise<string | null> {
   try {
     const connection = await pool.getConnection();
-    const [configs] = await connection.query(
+    const qr = await connection.query(
       'SELECT config_value FROM tenant_configs WHERE tenant_id = ? AND config_key = ?',
-      [tenantId, configKey]
-    ) as TenantConfig[];
+      [tenantId, configKey],
+    );
     connection.release();
+    const configs = qr[0] as TenantConfig[];
     return configs.length > 0 ? configs[0].config_value : null;
   } catch (error) {
     console.error('Error getting tenant config:', error);
@@ -163,12 +161,13 @@ export async function setTenantConfig(
 export async function getAllTenantConfigs(tenantId: number): Promise<Record<string, string>> {
   try {
     const connection = await pool.getConnection();
-    const [configs] = await connection.query(
+    const qr = await connection.query(
       'SELECT config_key, config_value FROM tenant_configs WHERE tenant_id = ?',
-      [tenantId]
-    ) as TenantConfig[];
+      [tenantId],
+    );
     connection.release();
-    
+    const configs = qr[0] as TenantConfig[];
+
     const result: Record<string, string> = {};
     configs.forEach(config => {
       result[config.config_key] = config.config_value || '';

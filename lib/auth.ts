@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import type { NextRequest } from 'next/server';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
@@ -33,6 +34,16 @@ export async function comparePassword(password: string, hash: string): Promise<b
 
 export function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+export function getAdminFromRequest(request: NextRequest): TokenPayload | null {
+  const token = request.cookies.get('token')?.value;
+  if (!token) return null;
+
+  const payload = verifyToken(token);
+  if (!payload || payload.role !== 'admin') return null;
+
+  return payload;
 }
 
 

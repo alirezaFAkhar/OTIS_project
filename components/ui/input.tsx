@@ -1,12 +1,26 @@
 import * as React from "react"
 
+import { toEnglishDigits } from "@/lib/digits"
 import { cn } from "@/lib/utils"
 
 export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {}
+  extends React.InputHTMLAttributes<HTMLInputElement> {
+  /** Convert Persian/Arabic digits to ASCII on change (default: true) */
+  normalizeDigits?: boolean
+}
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, ...props }, ref) => {
+  ({ className, type, onChange, normalizeDigits = true, ...props }, ref) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (normalizeDigits) {
+        const normalized = toEnglishDigits(e.target.value)
+        if (normalized !== e.target.value) {
+          e.target.value = normalized
+        }
+      }
+      onChange?.(e)
+    }
+
     return (
       <input
         type={type}
@@ -15,6 +29,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           className
         )}
         ref={ref}
+        onChange={handleChange}
         {...props}
       />
     )
