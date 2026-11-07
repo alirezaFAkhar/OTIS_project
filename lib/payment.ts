@@ -10,7 +10,7 @@ const ZARINPAL_BASE_URL = ZARINPAL_SANDBOX
   : 'https://api.zarinpal.com/pg/v4';
 
 export interface PaymentRequest {
-  amount: number; // Amount in Toman (IRR / 10)
+  amount: number; // Amount in Rial (IRR)
   description?: string;
   callbackUrl: string;
   mobile?: string;

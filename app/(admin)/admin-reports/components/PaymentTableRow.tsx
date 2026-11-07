@@ -59,10 +59,10 @@ export default function PaymentTableRow({ payment, complexName }: PaymentTableRo
         {payment.TrackingNumber ? toPersianNumber(payment.TrackingNumber) : '-'}
       </td>
       <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-800">
-        {formatNumber(payment.Amount)} تومان
+        {formatNumber(payment.Amount)} ریال
       </td>
       <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-800">
-        {formatNumber(payment.Credit)} تومان
+        {formatNumber(payment.Credit)} ریال
       </td>
       <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">
         <PaymentStatusBadge status={payment.Status} />

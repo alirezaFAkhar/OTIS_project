@@ -8,17 +8,17 @@ export default function ChargeSummary({ amount }: ChargeSummaryProps) {
       <div className="flex justify-between items-center mb-2">
         <span className="text-gray-700">مبلغ پرداختی:</span>
         <span className="font-bold text-gray-800">
-          {amount.toLocaleString('fa-IR')} تومان
+          {amount.toLocaleString('fa-IR')} ریال
         </span>
       </div>
       <div className="flex justify-between items-center">
         <span className="text-gray-700">مالیات بر ارزش افزوده:</span>
-        <span className="font-bold text-gray-800">۰ تومان</span>
+        <span className="font-bold text-gray-800">۰ ریال</span>
       </div>
       <div className="border-t border-blue-200 mt-2 pt-2 flex justify-between items-center">
         <span className="font-semibold text-gray-800">جمع کل:</span>
         <span className="font-bold text-xl text-blue-600">
-          {amount.toLocaleString('fa-IR')} تومان
+          {amount.toLocaleString('fa-IR')} ریال
         </span>
       </div>
     </div>

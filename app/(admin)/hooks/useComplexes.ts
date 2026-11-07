@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { authFetch } from '@/lib/authFetch';
 
 interface Complex {
   id: number;
@@ -13,7 +14,7 @@ export function useComplexes() {
   useEffect(() => {
     const fetchComplexes = async () => {
       try {
-        const response = await fetch('/api/admin/complexes');
+        const response = await authFetch('/api/admin/complexes');
         const data = await response.json();
         if (data.complexes) {
           setComplexes(data.complexes);

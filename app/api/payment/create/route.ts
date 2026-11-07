@@ -7,7 +7,7 @@ import sql from 'mssql';
 import { z } from 'zod';
 
 const createPaymentSchema = z.object({
-  amount: z.number().min(1000, 'حداقل مبلغ ۱۰۰۰ تومان است'),
+  amount: z.number().min(1000, 'حداقل مبلغ ۱۰۰۰ ریال است'),
   bankId: z.string().min(1, 'انتخاب بانک الزامی است'),
   bankName: z.string().min(1, 'نام بانک الزامی است'),
   description: z.string().optional(),

@@ -63,10 +63,10 @@ export default function PaymentTable({
                 {toPersianNumber(Number(payment.TrackingNumber)) || '-'}
               </td>
               <td className="px-4 py-3 text-sm text-gray-700 font-medium">
-                {formatCurrency(payment.Amount)} تومان
+                {formatCurrency(payment.Amount)} ریال
               </td>
               <td className="px-4 py-3 text-sm text-gray-700 font-medium">
-                {formatCurrency(payment.Credit)} تومان
+                {formatCurrency(payment.Credit)} ریال
               </td>
               <td className="px-4 py-3 text-sm">
                 <StatusBadge status={payment.Status} />

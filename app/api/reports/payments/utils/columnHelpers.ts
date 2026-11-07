@@ -50,6 +50,10 @@ export function getPaymentColumns() {
       process.env.PAYMENTS_PAY_TYPE_COLUMN,
       'PayType'
     ),
+    paymentsP1Column: safeColumnName(process.env.PAYMENTS_P1_COLUMN, 'P1'),
+    paymentsP2Column: safeColumnName(process.env.PAYMENTS_P2_COLUMN, 'P2'),
+    paymentsP3Column: safeColumnName(process.env.PAYMENTS_P3_COLUMN, 'P3'),
+    paymentsP4Column: safeColumnName(process.env.PAYMENTS_P4_COLUMN, 'P4'),
   };
 }
 

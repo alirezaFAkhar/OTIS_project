@@ -9,6 +9,7 @@ import PaymentPagination from './components/PaymentPagination';
 import LoadingState from './components/LoadingState';
 import EmptyState from './components/EmptyState';
 import { Payment, Pagination } from './types';
+import { authFetch } from '@/lib/authFetch';
 
 export default function ReportsPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -39,9 +40,7 @@ export default function ReportsPage() {
         params.append('toDate', toDate);
       }
 
-      const response = await fetch(`/api/reports/payments?${params.toString()}`, {
-        credentials: 'include',
-      });
+      const response = await authFetch(`/api/reports/payments?${params.toString()}`);
 
       if (!response.ok) {
         throw new Error('خطا در دریافت داده‌ها');

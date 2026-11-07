@@ -2,10 +2,10 @@ import { Package, Bank } from './types';
 
 // TODO: این داده‌ها باید از دیتابیس بیایند
 export const PACKAGES: Package[] = [
-  { id: '1', amount: '100000', label: '۱۰۰,۰۰۰ تومان' },
-  { id: '2', amount: '200000', label: '۲۰۰,۰۰۰ تومان' },
-  { id: '3', amount: '500000', label: '۵۰۰,۰۰۰ تومان' },
-  { id: '4', amount: '1000000', label: '۱,۰۰۰,۰۰۰ تومان' },
+  { id: '1', amount: '100000', label: '۱۰۰,۰۰۰ ریال' },
+  { id: '2', amount: '200000', label: '۲۰۰,۰۰۰ ریال' },
+  { id: '3', amount: '500000', label: '۵۰۰,۰۰۰ ریال' },
+  { id: '4', amount: '1000000', label: '۱,۰۰۰,۰۰۰ ریال' },
 ];
 
 export const BANKS: Bank[] = [

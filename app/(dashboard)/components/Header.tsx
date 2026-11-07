@@ -10,6 +10,7 @@ interface UserData {
   adr?: string;
   phone?: string;
   serialNumber?: string;
+  partNumber?: string;
   balance: string;
 }
 
@@ -18,6 +19,7 @@ interface HeaderProps {
   user: UserData;
   batteryData?: {
     isActive?: boolean;
+    currentBalance?: number;
   } | null;
   currentDate: string;
   onLogout: () => void;
@@ -52,7 +54,7 @@ export default function Header({
                 <h2 className="font-bold text-gray-800 text-sm sm:text-base lg:text-lg truncate">
                   {user.name || 'کاربر'}
                 </h2>
-                {(user.address || user.adr) && (
+                {(user.address || user.adr || user.partNumber) && (
                   <div className="flex flex-col gap-1">
                     {user.address && (
                       <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-600">
@@ -64,6 +66,12 @@ export default function Header({
                       <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-600">
                         <MapPin size={12} className="sm:w-3.5 sm:h-3.5 shrink-0" />
                         <span className="truncate">{user.adr}</span>
+                      </div>
+                    )}
+                    {user.partNumber && (
+                      <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-600">
+                        <MapPin size={12} className="sm:w-3.5 sm:h-3.5 shrink-0" />
+                        <span className="truncate">پلاک: {toPersianNumber(user.partNumber)}</span>
                       </div>
                     )}
                   </div>
@@ -121,7 +129,15 @@ export default function Header({
           <div className="flex items-center gap-1.5 sm:gap-2">
             <CreditCard size={12} className="sm:w-4 sm:h-4 text-gray-400 shrink-0" />
             <span className="text-xs sm:text-sm text-gray-600">
-              موجودی: <span className="font-bold text-green-600">{user.balance || '0'}</span> تومان
+              موجودی:{' '}
+              <span
+                className={`font-bold ${
+                  (batteryData?.currentBalance ?? 0) < 0 ? 'text-red-600' : 'text-green-600'
+                }`}
+              >
+                {user.balance || '0'}
+              </span>{' '}
+              ریال
             </span>
           </div>
           {user.phone && (

@@ -35,10 +35,10 @@ export default function MemberTableRow({ member }: MemberTableRowProps) {
         {member.name || '-'}
       </td>
       <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-800">
-        {formatNumber(member.balanceAfterCharge)} تومان
+        {formatNumber(member.balanceAfterCharge)} ریال
       </td>
       <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-800">
-        {formatNumber(member.amount)} تومان
+        {formatNumber(member.amount)} ریال
       </td>
     </tr>
   );

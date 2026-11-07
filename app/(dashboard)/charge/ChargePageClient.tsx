@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import toast, { Toaster } from 'react-hot-toast';
+import { authFetch } from '@/lib/authFetch';
 import { Package } from './types';
 import { PACKAGES, BANKS } from './constants';
 import ChargeHeader from './components/ChargeHeader';
@@ -73,7 +74,7 @@ export default function ChargePageClient() {
         return;
       }
 
-      const response = await fetch('/api/payment/create', {
+      const response = await authFetch('/api/payment/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -83,7 +84,7 @@ export default function ChargePageClient() {
           amount: parseFloat(amount),
           bankId: selectedBank,
           bankName: selectedBankData.name,
-          description: `شارژ حساب - ${parseFloat(amount).toLocaleString('fa-IR')} تومان`,
+          description: `شارژ حساب - ${parseFloat(amount).toLocaleString('fa-IR')} ریال`,
         }),
       });
 

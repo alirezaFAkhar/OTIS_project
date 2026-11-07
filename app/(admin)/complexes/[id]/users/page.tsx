@@ -9,6 +9,7 @@ import MemberCardList from '@/app/(admin)/users/components/MemberCardList';
 import Pagination from '@/app/(admin)/users/components/Pagination';
 import LoadingState from '@/app/(admin)/users/components/LoadingState';
 import ErrorState from '@/app/(admin)/users/components/ErrorState';
+import { authFetch } from '@/lib/authFetch';
 
 export default function ComplexUsersPage() {
   const params = useParams();
@@ -31,7 +32,7 @@ export default function ComplexUsersPage() {
     // Fetch complex name
     const fetchComplexName = async () => {
       try {
-        const response = await fetch('/api/admin/complexes');
+        const response = await authFetch('/api/admin/complexes');
         const data = await response.json();
         if (data.complexes) {
           const complex = data.complexes.find((c: any) => c.id === complexId);

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Member, Pagination, UserFilters } from '../types';
+import { authFetch } from '@/lib/authFetch';
 
 export function useMembers() {
   const [members, setMembers] = useState<Member[]>([]);
@@ -32,7 +33,7 @@ export function useMembers() {
       if (filters.name) params.append('name', filters.name);
       if (filters.isActive) params.append('isActive', filters.isActive);
 
-      const response = await fetch(`/api/admin/members?${params.toString()}`);
+      const response = await authFetch(`/api/admin/members?${params.toString()}`);
       const data = await response.json();
 
       if (data.error) {

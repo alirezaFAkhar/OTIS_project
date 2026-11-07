@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { generateToken } from '@/lib/auth';
 import { getTenantFromHeaders } from '@/lib/tenant-middleware';
+import { getComplexIdFromHost } from '@/lib/complex';
 import {
   safeColumnName,
   getDbClient,
@@ -31,6 +32,7 @@ function getColumnNames() {
     passwordColumn: safeColumnName(process.env.MEMBERS_PASSWORD_COLUMN, 'Password'),
     phoneColumn: safeColumnName(process.env.MEMBERS_PHONE_COLUMN, 'PhoneNo'),
     isActiveColumn: safeColumnName(process.env.MEMBERS_ACTIVE_COLUMN, 'IsActive'),
+    complexIdColumn: safeColumnName(process.env.MEMBERS_COMPLEX_ID_COLUMN, 'ComplexId'),
   };
 }
 
@@ -109,12 +111,16 @@ function validateMemberAccount(
 function createLoginResponse(member: any, columnNames: ReturnType<typeof getColumnNames>) {
   const memberIdRaw = member[columnNames.idColumn];
   const memberId = Number(memberIdRaw);
+  const complexIdRaw = member[columnNames.complexIdColumn];
+  const complexId = Number(complexIdRaw);
 
   // Generate JWT token
   const token = generateToken({
     userId: Number.isFinite(memberId) ? memberId : 0,
     username: String(member[columnNames.usernameColumn] ?? ''),
     phone: String(member[columnNames.phoneColumn] ?? ''),
+    role: 'user',
+    complexId: Number.isFinite(complexId) ? complexId : undefined,
   });
 
   // Create response
@@ -247,6 +253,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Ensure this member actually belongs to the complex being logged into
+    // (resolved from the request's own host, not client-supplied input).
+    // Fail closed: an unresolvable host or a lookup error must NOT be treated
+    // as "no restriction" — both are rejected just like a mismatched complex.
+    const memberComplexIdRaw = member[columnNames.complexIdColumn];
+    const memberComplexId = Number(memberComplexIdRaw);
+    if (Number.isFinite(memberComplexId)) {
+      let requestComplexId: number | null = null;
+      try {
+        requestComplexId = await getComplexIdFromHost(request);
+      } catch (complexLookupError: any) {
+        console.error(
+          `[member-login] complex lookup failed: host=${request.headers.get('x-forwarded-host') || request.headers.get('host')} memberId=${member[columnNames.idColumn]} error=${complexLookupError?.message}`
+        );
+        return NextResponse.json(
+          { error: 'نام کاربری یا رمز عبور اشتباه است' },
+          { status: 401 }
+        );
+      }
+
+      if (requestComplexId !== null && requestComplexId !== memberComplexId) {
+        console.warn(
+          `[member-login] blocked: host=${request.headers.get('x-forwarded-host') || request.headers.get('host')} memberId=${member[columnNames.idColumn]} memberComplexId=${memberComplexId} resolvedComplexId=${requestComplexId}`
+        );
+        return NextResponse.json(
+          { error: 'نام کاربری یا رمز عبور اشتباه است' },
+          { status: 401 }
+        );
+      }
+    }
+
     // Create and return success response with token
     const memberIdRaw = member[columnNames.idColumn];
     const memberId = Number(memberIdRaw);
@@ -257,6 +294,7 @@ export async function POST(request: NextRequest) {
       username: String(member[columnNames.usernameColumn] ?? ''),
       phone: String(member[columnNames.phoneColumn] ?? ''),
       role: 'user',
+      complexId: Number.isFinite(memberComplexId) ? memberComplexId : undefined,
     });
 
     // Create response

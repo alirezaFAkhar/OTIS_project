@@ -154,3 +154,45 @@ export function handleDatabaseError(error: any): NextResponse | null {
   return null;
 }
 
+
+/**
+ * Get tariff unit prices (P1-P4) for a complex from the Tarefe table.
+ * If a complex has several rows, the newest (highest TId) wins.
+ */
+export async function getTariffPrices(complexId: number): Promise<number[] | null> {
+  const table = safeColumnName(process.env.TARIFF_TABLE, 'Tarefe');
+  const complexCol = safeColumnName(process.env.TARIFF_COMPLEX_ID_COLUMN, 'ComplexId');
+  const idCol = safeColumnName(process.env.TARIFF_ID_COLUMN, 'TId');
+  const cols = ['P1', 'P2', 'P3', 'P4'];
+  let row: any = null;
+
+  if (getDbClient() === 'mssql') {
+    if (!pool.connected) {
+      await pool.connect();
+    }
+    const result = await pool
+      .request()
+      .input('complexId', sql.Int, complexId)
+      .query(
+        `SELECT TOP 1 ${cols.join(', ')} FROM ${table} WHERE ${complexCol} = @complexId ORDER BY ${idCol} DESC`
+      );
+    row = result.recordset[0];
+  } else {
+    const connection = await pool.getConnection();
+    try {
+      const [rows] = (await connection.query(
+        `SELECT ${cols.join(', ')} FROM ${table} WHERE ${complexCol} = ? ORDER BY ${idCol} DESC LIMIT 1`,
+        [complexId]
+      )) as any[];
+      row = rows[0];
+    } finally {
+      connection.release();
+    }
+  }
+
+  if (!row) return null;
+  return cols.map((c) => {
+    const n = Number(row[c]);
+    return Number.isFinite(n) ? n : 0;
+  });
+}

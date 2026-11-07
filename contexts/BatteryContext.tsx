@@ -1,12 +1,14 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface TariffData {
   name: string;
   readingAtLastCharge: number;
   lastReading: number;
   consumption: number;
+  amount?: number;
 }
 
 interface BatteryData {
@@ -19,6 +21,7 @@ interface BatteryData {
   memberName: string;
   memberPhone: string;
   memberSerialNumber: string;
+  memberPartNumber: string;
   complexName: string;
   adr: string;
   // Additional data
@@ -41,11 +44,12 @@ interface BatteryContextType {
 const BatteryContext = createContext<BatteryContextType | undefined>(undefined);
 
 export function BatteryProvider({ children }: { children: ReactNode }) {
+  const router = useRouter();
   const [batteryData, setBatteryData] = useState<BatteryData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchBatteryData = async () => {
+  const fetchBatteryData = useCallback(async () => {
     setLoading(true);
     setError(null);
     
@@ -56,7 +60,10 @@ export function BatteryProvider({ children }: { children: ReactNode }) {
 
       if (!response.ok) {
         if (response.status === 401) {
-          throw new Error('Unauthorized');
+          // Stale/invalid token: clear it server-side and send the user back to login
+          await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
+          router.replace('/login');
+          return;
         }
         const errorData = await response.json();
         throw new Error(errorData.error || 'خطا در دریافت اطلاعات');
@@ -70,16 +77,16 @@ export function BatteryProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
 
-  const refreshBatteryData = async () => {
+  const refreshBatteryData = useCallback(async () => {
     await fetchBatteryData();
-  };
+  }, [fetchBatteryData]);
 
   // Fetch data on mount
   useEffect(() => {
     fetchBatteryData();
-  }, []);
+  }, [fetchBatteryData]);
 
   return (
     <BatteryContext.Provider

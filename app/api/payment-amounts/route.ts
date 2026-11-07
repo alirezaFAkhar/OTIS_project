@@ -93,7 +93,7 @@ function formatAmount(amount: any): string {
 function formatAmountLabel(amount: string): string {
   const numAmount = parseFloat(amount);
   if (isNaN(numAmount)) return amount;
-  return numAmount.toLocaleString('fa-IR') + ' تومان';
+  return numAmount.toLocaleString('fa-IR') + ' ریال';
 }
 
 /**

@@ -10,6 +10,7 @@ import PaymentCardList from '@/app/(admin)/admin-reports/components/PaymentCardL
 import { Payment } from '@/app/(admin)/admin-reports/types';
 import LoadingState from '@/app/(admin)/admin-reports/components/LoadingState';
 import { useComplexes } from '../hooks/useComplexes';
+import { authFetch } from '@/lib/authFetch';
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<StatCard[]>(defaultStats);
@@ -21,7 +22,7 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch('/api/admin/stats');
+        const response = await authFetch('/api/admin/stats');
         const data = await response.json();
 
         if (data.error) {
@@ -66,7 +67,7 @@ export default function AdminDashboardPage() {
 
     const fetchTodayPayments = async () => {
       try {
-        const response = await fetch('/api/admin/payments/today');
+        const response = await authFetch('/api/admin/payments/today');
         const data = await response.json();
 
         if (data.error) {

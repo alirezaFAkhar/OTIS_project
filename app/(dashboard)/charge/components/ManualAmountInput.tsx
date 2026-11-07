@@ -22,7 +22,7 @@ export default function ManualAmountInput({ amount }: ManualAmountInputProps) {
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            مبلغ (تومان)
+            مبلغ (ریال)
           </label>
           <input
             type="text"

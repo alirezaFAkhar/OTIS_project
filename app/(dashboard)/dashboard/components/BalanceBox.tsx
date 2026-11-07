@@ -85,7 +85,7 @@ export default function BalanceBox({
           <p className="text-3xl font-bold text-center">
             {formatPersianNumber(data.currentBalance)}
           </p>
-          <p className="text-center text-white/80 mt-1 text-sm">تومان</p>
+          <p className="text-center text-white/80 mt-1 text-sm">ریال</p>
           <div className="mt-3 pt-3 border-t border-white/20">
             <p className="text-center text-xs">
               {batteryPercentagePersian}% از اعتبار

@@ -15,6 +15,7 @@ interface MoreDetailsData {
     readingAtLastCharge: number;
     lastReading: number;
     consumption: number;
+    amount?: number;
   }>;
 }
 
@@ -50,7 +51,7 @@ export default function MoreDetailsSection({ data }: MoreDetailsSectionProps) {
               <p className="text-gray-600 text-xs sm:text-sm mb-1">کل اعتبار از ابتدا</p>
               <p className="text-lg sm:text-2xl font-bold text-gray-800">
                 {data.totalCharge ? formatPersianNumber(data.totalCharge) : '0'}
-                <span className="text-xs sm:text-sm text-gray-600 mr-1">تومان</span>
+                <span className="text-xs sm:text-sm text-gray-600 mr-1">ریال</span>
               </p>
             </div>
 
@@ -62,7 +63,7 @@ export default function MoreDetailsSection({ data }: MoreDetailsSectionProps) {
             </div>
 
             <div className="bg-orange-50 rounded-lg p-2.5 sm:p-4 border-r-4 border-orange-500 w-full min-w-0 box-border overflow-hidden">
-              <p className="text-gray-600 text-xs sm:text-sm mb-1">ولتاژ</p>
+              <p className="text-gray-600 text-xs sm:text-sm mb-1">ولتاژ لحظه آخرین قرائت</p>
               <p className="text-lg sm:text-2xl font-bold text-gray-800">
                 {data.voltage ? data.voltage.toFixed(1) : '0'}
                 <span className="text-xs sm:text-sm text-gray-600 mr-1">V</span>
@@ -70,7 +71,7 @@ export default function MoreDetailsSection({ data }: MoreDetailsSectionProps) {
             </div>
 
             <div className="bg-purple-50 rounded-lg p-2.5 sm:p-4 border-r-4 border-purple-500 w-full min-w-0 box-border overflow-hidden">
-              <p className="text-gray-600 text-xs sm:text-sm mb-1">جریان</p>
+              <p className="text-gray-600 text-xs sm:text-sm mb-1">جریان لحظه آخرین قرائت</p>
               <p className="text-lg sm:text-2xl font-bold text-gray-800">
                 {data.amper ? data.amper.toFixed(1) : '0'}
                 <span className="text-xs sm:text-sm text-gray-600 mr-1">A</span>

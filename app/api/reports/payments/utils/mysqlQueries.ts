@@ -3,6 +3,7 @@ import { translatePayType } from './payTypeTranslator';
 
 interface PaymentColumns {
   paymentsTable: string;
+  paymentsMemberIdColumn: string;
   paymentsPayDateColumn: string;
   paymentsAddDateColumn: string;
   paymentsPayTypeColumn: string;
@@ -66,6 +67,41 @@ export async function getPaymentsMySQL(
       ...payment,
       PayType: translatePayType(payment.PayType),
     }));
+  } finally {
+    connection.release();
+  }
+}
+
+/**
+ * Get the member's most recent Payments row's tariff readings (P1-P4), ordered by Id DESC
+ */
+export async function getLatestPaymentReadingsMySQL(
+  columns: PaymentColumns & {
+    paymentsP1Column: string;
+    paymentsP2Column: string;
+    paymentsP3Column: string;
+    paymentsP4Column: string;
+  },
+  memberId: number
+): Promise<any | null> {
+  const connection = await pool.getConnection();
+  try {
+    const query = `
+      SELECT
+        ${columns.paymentsP1Column} as P1,
+        ${columns.paymentsP2Column} as P2,
+        ${columns.paymentsP3Column} as P3,
+        ${columns.paymentsP4Column} as P4,
+        ${columns.paymentsPayDateColumn} as PayDate,
+        ${columns.paymentsAddDateColumn} as AddDate
+      FROM ${columns.paymentsTable}
+      WHERE ${columns.paymentsMemberIdColumn} = ?
+      ORDER BY Id DESC
+      LIMIT 1
+    `;
+
+    const [result] = (await connection.query(query, [memberId])) as any[];
+    return result[0] || null;
   } finally {
     connection.release();
   }

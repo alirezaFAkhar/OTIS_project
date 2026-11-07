@@ -78,13 +78,13 @@ export default function PaymentCard({ payment }: PaymentCardProps) {
         <div>
           <span className="text-xs text-gray-500 block mb-1">مبلغ</span>
           <span className="text-sm font-semibold text-gray-800">
-            {formatNumber(payment.Amount)} تومان
+            {formatNumber(payment.Amount)} ریال
           </span>
         </div>
         <div>
           <span className="text-xs text-gray-500 block mb-1">موجودی</span>
           <span className="text-sm font-semibold text-gray-800">
-            {formatNumber(payment.Credit)} تومان
+            {formatNumber(payment.Credit)} ریال
           </span>
         </div>
       </div>

@@ -53,14 +53,14 @@ export default function PaymentCard({
         <div className="flex justify-between items-center py-2 border-b border-gray-100">
           <span className="text-xs text-gray-500">مبلغ:</span>
           <span className="text-sm font-semibold text-blue-600">
-            {formatCurrency(payment.Amount)} تومان
+            {formatCurrency(payment.Amount)} ریال
           </span>
         </div>
 
         <div className="flex justify-between items-center py-2">
           <span className="text-xs text-gray-500">مانده اعتبار:</span>
           <span className="text-sm text-gray-700 font-semibold">
-            {formatCurrency(payment.Credit)} تومان
+            {formatCurrency(payment.Credit)} ریال
           </span>
         </div>
       </div>

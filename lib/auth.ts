@@ -10,6 +10,7 @@ export interface TokenPayload {
   phone: string;
   role?: 'user' | 'admin';
   tenantId?: number;
+  complexId?: number;
 }
 
 export function generateToken(payload: TokenPayload): string {

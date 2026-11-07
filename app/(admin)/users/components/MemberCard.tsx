@@ -51,13 +51,13 @@ export default function MemberCard({ member }: MemberCardProps) {
         <div>
           <span className="text-xs text-gray-500 block mb-1">موجودی پس از شارژ</span>
           <span className="text-sm font-semibold text-gray-800">
-            {formatNumber(member.balanceAfterCharge)} تومان
+            {formatNumber(member.balanceAfterCharge)} ریال
           </span>
         </div>
         <div>
           <span className="text-xs text-gray-500 block mb-1">مبلغ</span>
           <span className="text-sm font-semibold text-gray-800">
-            {formatNumber(member.amount)} تومان
+            {formatNumber(member.amount)} ریال
           </span>
         </div>
       </div>

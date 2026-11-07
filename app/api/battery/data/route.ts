@@ -7,9 +7,14 @@ import {
   getMemberMySQL,
   getComplexMSSQL,
   getComplexMySQL,
+  getTariffPrices,
   handleDatabaseError,
 } from './utils/databaseHelpers';
 import { transformMemberToBatteryData } from './utils/dataTransformers';
+import { getPaymentColumns } from '@/app/api/reports/payments/utils/columnHelpers';
+import { buildDateColumn, buildWhereClause } from '@/app/api/reports/payments/utils/queryBuilder';
+import { getPaymentsMSSQL, getLatestPaymentReadingsMSSQL } from '@/app/api/reports/payments/utils/mssqlQueries';
+import { getPaymentsMySQL, getLatestPaymentReadingsMySQL } from '@/app/api/reports/payments/utils/mysqlQueries';
 
 /**
  * Validate and extract user ID from token
@@ -69,11 +74,57 @@ async function getMemberData(userId: number) {
 }
 
 /**
+ * Get the member's most recent Payments row (amount + balance-after-charge columns)
+ */
+async function getLatestPayment(userId: number) {
+  try {
+    const columns = getPaymentColumns();
+    const dbClient = getDbClient();
+    const dateColumn = buildDateColumn(dbClient, columns.paymentsPayDateColumn, columns.paymentsAddDateColumn);
+    const { whereClause, queryParams } = buildWhereClause(
+      dbClient,
+      columns.paymentsMemberIdColumn,
+      userId,
+      dateColumn,
+      null,
+      null
+    );
+
+    const payments =
+      dbClient === 'mssql'
+        ? await getPaymentsMSSQL(columns, dateColumn, whereClause, userId, null, null, 0, 1)
+        : await getPaymentsMySQL(columns, dateColumn, whereClause, queryParams, 1, 0);
+
+    const latestPayment = payments[0] || null;
+
+    // Tariff readings (P1-P4) must come from the member's most recent Payments row
+    // ordered by Id DESC (per employer's spec), which may differ from the row above
+    // (ordered by pay date) if rows were entered out of date order.
+    const readings =
+      dbClient === 'mssql'
+        ? await getLatestPaymentReadingsMSSQL(columns, userId)
+        : await getLatestPaymentReadingsMySQL(columns, userId);
+
+    if (!latestPayment && !readings) {
+      return null;
+    }
+
+    return { ...latestPayment, ...readings };
+  } catch (error) {
+    console.error('Failed to fetch latest payment:', error);
+    return null;
+  }
+}
+
+/**
  * Get complex data from database
  */
-async function getComplexData(complexId: number | null | undefined): Promise<string> {
+async function getComplexData(
+  complexId: number | null | undefined
+): Promise<{ name: string; prices: number[] | null }> {
+  const empty = { name: '', prices: null };
   if (!complexId) {
-    return '';
+    return empty;
   }
 
   const columnNames = getColumnNames();
@@ -98,10 +149,16 @@ async function getComplexData(complexId: number | null | undefined): Promise<str
   }
 
   if (!complex) {
-    return '';
+    return empty;
   }
 
-  return complex[columnNames.complexesNameColumn] || '';
+  // Tariff unit prices P1-P4 come from the Tarefe table (by ComplexId)
+  const prices = await getTariffPrices(complexId).catch((err) => {
+    console.error('Failed to fetch tariff prices:', err);
+    return null;
+  });
+
+  return { name: complex[columnNames.complexesNameColumn] || '', prices };
 }
 
 /**
@@ -139,10 +196,13 @@ export async function GET(request: NextRequest) {
     // Get complex data if ComplexId exists
     const columnNames = getColumnNames();
     const complexId = member[columnNames.membersComplexIdColumn];
-    const complexName = await getComplexData(complexId);
+    const { name: complexName, prices: complexPrices } = await getComplexData(complexId);
+
+    // Get the member's latest payment for amount / balance-after-charge
+    const latestPayment = await getLatestPayment(userId);
 
     // Transform member data to battery data format
-    const batteryData = transformMemberToBatteryData(member, complexName);
+    const batteryData = transformMemberToBatteryData(member, complexName, latestPayment, complexPrices);
 
     return NextResponse.json(batteryData);
   } catch (error: any) {

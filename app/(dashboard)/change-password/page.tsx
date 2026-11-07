@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { Input } from '@/components/ui/input';
+import { authFetch } from '@/lib/authFetch';
 
 export default function ChangePasswordPage() {
   const [password, setPassword] = useState('');
@@ -30,7 +31,7 @@ export default function ChangePasswordPage() {
 
     setIsLoading(true);
     try {
-      const response = await fetch('/api/auth/change-password', {
+      const response = await authFetch('/api/auth/change-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

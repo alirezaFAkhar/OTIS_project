@@ -1,15 +1,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import toast, { Toaster } from 'react-hot-toast';
 import { Eye, EyeOff } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { authFetch } from '@/lib/authFetch';
 
 export default function ComplexInfoPage() {
   const params = useParams();
-  const router = useRouter();
   const complexId = params.id as string;
 
   const [name, setName] = useState('');
@@ -22,14 +22,8 @@ export default function ComplexInfoPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/admin/complexes/${complexId}`, { credentials: 'include' })
-      .then(async (res) => {
-        if (res.status === 401 || res.status === 403) {
-          router.push('/login');
-          return null;
-        }
-        return res.json();
-      })
+    authFetch(`/api/admin/complexes/${complexId}`)
+      .then((res) => res.json())
       .then((data) => {
         if (!data) return;
         if (data.error) {
@@ -47,17 +41,16 @@ export default function ComplexInfoPage() {
         toast.error('خطا در دریافت اطلاعات مجموعه');
       })
       .finally(() => setLoading(false));
-  }, [complexId, router]);
+  }, [complexId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
 
     try {
-      const response = await fetch(`/api/admin/complexes/${complexId}`, {
+      const response = await authFetch(`/api/admin/complexes/${complexId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({
           name,
           complexUrl,

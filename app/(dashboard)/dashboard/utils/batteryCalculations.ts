@@ -39,13 +39,13 @@ export function calculateBatterySegments(
 
 /**
  * Get color for battery segment based on its position
- * - Bottom segment (0): Red (last 10 Toman)
+ * - Bottom segment (0): Red (last 10 Rial)
  * - Second segment (1): Orange (10% to 20%)
  * - Segments 2-4: Yellow (20% to 50%)
  * - Segments 5-9: Green (50% to 100%)
  */
 export function getSegmentColor(segmentIndex: number): string {
-  // Bottom segment (last 10 Toman): Red
+  // Bottom segment (last 10 Rial): Red
   if (segmentIndex === 0) {
     return 'bg-red-500';
   }
@@ -71,10 +71,10 @@ export function getBalanceBoxColor(
   currentBalance: number,
   lastChargeAmount: number
 ): string {
-  // Last 10 Toman: Red
+  // Last 10 Rial: Red
   if (currentBalance <= 10) return 'bg-red-500';
 
-  // 10% to last 10 Toman: Orange
+  // 10% to last 10 Rial: Orange
   const tenPercent = lastChargeAmount * 0.1;
   if (currentBalance <= tenPercent && currentBalance > 10) {
     return 'bg-orange-500';

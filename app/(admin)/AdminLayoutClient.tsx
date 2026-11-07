@@ -55,8 +55,12 @@ function AdminContent({ children }: { children: React.ReactNode }) {
       });
   }, [router]);
 
-  const handleLogout = () => {
-    document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    } catch (err) {
+      console.error('Error clearing session:', err);
+    }
     toast.success('با موفقیت خارج شدید');
     router.push('/login');
   };

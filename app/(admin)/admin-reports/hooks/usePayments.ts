@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Payment, Pagination, PaymentFilters } from '../types';
+import { authFetch } from '@/lib/authFetch';
 
 export function usePayments() {
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -32,7 +33,7 @@ export function usePayments() {
       if (filters.trackingNumber) params.append('trackingNumber', filters.trackingNumber);
       if (filters.status) params.append('status', filters.status);
 
-      const response = await fetch(`/api/admin/payments?${params.toString()}`);
+      const response = await authFetch(`/api/admin/payments?${params.toString()}`);
       const data = await response.json();
 
       if (data.error) {

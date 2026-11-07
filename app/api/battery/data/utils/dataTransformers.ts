@@ -11,6 +11,7 @@ export interface BatteryDataResponse {
   memberName: string;
   memberPhone: string;
   memberSerialNumber: string;
+  memberPartNumber: string;
   complexName: string;
   adr: string;
   totalCharge: number;
@@ -23,6 +24,7 @@ export interface BatteryDataResponse {
     readingAtLastCharge: number;
     lastReading: number;
     consumption: number;
+    amount?: number;
   }>;
 }
 
@@ -62,25 +64,38 @@ function formatDateTime(date: any): string {
 /**
  * Calculate tariff consumption data
  */
-function calculateTariffData(member: any) {
-  // Get tariff readings (P1, P2, P3, P4)
-  const p1 = parseFloatSafe(member.P1); // باری (تعرفه 1)
-  const p2 = parseFloatSafe(member.P2); // اوج بار (تعرفه 2)
-  const p3 = parseFloatSafe(member.P3); // کم باری (تعرفه 3)
-  const p4 = parseFloatSafe(member.P4); // انرژی راکتیو
+function calculateTariffData(
+  member: any,
+  latestPayment: any = null,
+  prices: number[] | null = null
+) {
+  // مبلغ (ریال) = مصرف هر سطر × قیمت تعرفه‌ی همان سطر (P1..P4 از جدول مجتمع)
+  const amountFor = (consumption: number, index: number) =>
+    prices ? Math.round(consumption * prices[index]) : undefined;
 
-  // For now, use current readings as last charge readings
-  // TODO: If you have historical data, get readings at LastChargeDate
-  const p1AtLastCharge = p1;
-  const p2AtLastCharge = p2;
-  const p3AtLastCharge = p3;
-  const p4AtLastCharge = p4;
+  // "آخرین قرائت کنتور" (current meter reading) always comes from the Members
+  // table — this is the live reading and must not change.
+  const p1LastReading = parseFloatSafe(member.P1); // باری (تعرفه 1)
+  const p2LastReading = parseFloatSafe(member.P2); // اوج بار (تعرفه 2)
+  const p3LastReading = parseFloatSafe(member.P3); // کم باری (تعرفه 3)
+  const p4LastReading = parseFloatSafe(member.P4); // انرژی راکتیو
 
-  // Last meter readings (current readings)
-  const p1LastReading = p1;
-  const p2LastReading = p2;
-  const p3LastReading = p3;
-  const p4LastReading = p4;
+  // "قرائت زمان آخرین شارژ" (reading at the time of the last charge) comes only
+  // from the member's most recent Payments row. If that row has no readings
+  // (e.g. NULL / no Payments row at all), show 0 rather than silently falling
+  // back to the current reading — a 0 here is a visible signal that Payments
+  // has no data, instead of looking like a coincidental duplicate.
+  const hasPaymentReadings = latestPayment && (
+    latestPayment.P1 !== undefined && latestPayment.P1 !== null ||
+    latestPayment.P2 !== undefined && latestPayment.P2 !== null ||
+    latestPayment.P3 !== undefined && latestPayment.P3 !== null ||
+    latestPayment.P4 !== undefined && latestPayment.P4 !== null
+  );
+
+  const p1AtLastCharge = hasPaymentReadings ? parseFloatSafe(latestPayment.P1) : 0;
+  const p2AtLastCharge = hasPaymentReadings ? parseFloatSafe(latestPayment.P2) : 0;
+  const p3AtLastCharge = hasPaymentReadings ? parseFloatSafe(latestPayment.P3) : 0;
+  const p4AtLastCharge = hasPaymentReadings ? parseFloatSafe(latestPayment.P4) : 0;
 
   // Calculate consumption (difference)
   const p1Consumption = p1LastReading - p1AtLastCharge;
@@ -94,24 +109,28 @@ function calculateTariffData(member: any) {
       readingAtLastCharge: p1AtLastCharge,
       lastReading: p1LastReading,
       consumption: p1Consumption,
+      amount: amountFor(p1Consumption, 0),
     },
     {
       name: 'اوج بار (تعرفه ۲)',
       readingAtLastCharge: p2AtLastCharge,
       lastReading: p2LastReading,
       consumption: p2Consumption,
+      amount: amountFor(p2Consumption, 1),
     },
     {
       name: 'کم باری (تعرفه ۳)',
       readingAtLastCharge: p3AtLastCharge,
       lastReading: p3LastReading,
       consumption: p3Consumption,
+      amount: amountFor(p3Consumption, 2),
     },
     {
       name: 'انرژی راکتیو',
       readingAtLastCharge: p4AtLastCharge,
       lastReading: p4LastReading,
       consumption: p4Consumption,
+      amount: amountFor(p4Consumption, 3),
     },
   ];
 }
@@ -126,20 +145,33 @@ function safeColumnName(value: string | undefined, fallback: string): string {
 /**
  * Transform member database record to battery data response
  */
-export function transformMemberToBatteryData(member: any, complexName: string = ''): BatteryDataResponse {
+export function transformMemberToBatteryData(
+  member: any,
+  complexName: string = '',
+  latestPayment: { Amount?: any; Credit?: any; PayDate?: any; AddDate?: any } | null = null,
+  complexPrices: number[] | null = null
+): BatteryDataResponse {
   // Get column name for IsActive from environment variable
   const isActiveColumn = safeColumnName(process.env.MEMBERS_ACTIVE_COLUMN, 'IsActive');
-  
-  // Calculate battery data from Member table
-  const lastChargeAmount = parseFloatSafe(member.LastCharge);
-  const lastChargeDate = formatDate(member.LastChargeDate);
+
+  // Last charge amount comes from the member's latest Payments row when available,
+  // falling back to the Member table. currentBalance is the live account balance
+  // (Members.CurrRemainCharge) used by the battery/BalanceBox/header. balanceAfterCharge
+  // is a separate stored value (Members.CreditAfterLastCharge), defaulting to 0 when absent.
   const currentBalance = parseFloatSafe(member.CurrRemainCharge);
-  const balanceAfterCharge = lastChargeAmount; // After charge, balance equals charge amount
+  const lastChargeAmount = latestPayment
+    ? parseFloatSafe(latestPayment.Amount)
+    : parseFloatSafe(member.LastCharge);
+  const lastChargeDate = formatDate(
+    latestPayment ? (latestPayment.PayDate || latestPayment.AddDate) : member.LastChargeDate
+  );
+  const balanceAfterCharge = parseFloatSafe(member.CreditAfterLastCharge);
 
   // Get member info
   const memberName = member.Name || '';
   const memberPhone = member.PhoneNo || '';
   const memberSerialNumber = member.SerialNumber || '';
+  const memberPartNumber = member.PartNo || '';
   const adr = member.Adr || '';
 
   // Additional data
@@ -153,7 +185,7 @@ export function transformMemberToBatteryData(member: any, complexName: string = 
   const isActive = activeRaw === undefined || activeRaw === null ? true : Boolean(activeRaw);
 
   // Calculate tariff data
-  const tariffs = calculateTariffData(member);
+  const tariffs = calculateTariffData(member, latestPayment, complexPrices);
 
   return {
     lastChargeDate: lastChargeDate || '',
@@ -164,6 +196,7 @@ export function transformMemberToBatteryData(member: any, complexName: string = 
     memberName,
     memberPhone,
     memberSerialNumber,
+    memberPartNumber,
     complexName: complexName || '',
     adr: adr || '',
     totalCharge,

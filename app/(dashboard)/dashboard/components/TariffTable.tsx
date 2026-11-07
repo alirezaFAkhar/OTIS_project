@@ -5,45 +5,60 @@ interface TariffData {
   readingAtLastCharge: number;
   lastReading: number;
   consumption: number;
+  /** مبلغ (ریال) - منتظر فرمول محاسبه */
+  amount?: number;
 }
 
 interface TariffTableProps {
   tariffs: TariffData[];
 }
 
+// رنگ هر ستون هم‌رنگ کارت‌های بالای جدول (آبی، سبز، نارنجی، بنفش) + ستون مبلغ
+const COLUMN_STYLES = {
+  name: { head: 'bg-blue-50 border-b-blue-500', cell: 'bg-blue-50/40' },
+  readingAtLastCharge: { head: 'bg-green-50 border-b-green-500', cell: 'bg-green-50/40' },
+  lastReading: { head: 'bg-orange-50 border-b-orange-500', cell: 'bg-orange-50/40' },
+  consumption: { head: 'bg-purple-50 border-b-purple-500', cell: 'bg-purple-50/40' },
+  amount: { head: 'bg-rose-50 border-b-rose-500', cell: 'bg-rose-50/40' },
+} as const;
+
 /**
  * Component displaying tariff consumption table
  */
 export default function TariffTable({ tariffs }: TariffTableProps) {
+  const s = COLUMN_STYLES;
   return (
     <div className="w-full min-w-0 max-w-full box-border" style={{ contain: 'layout', maxWidth: '100%' }}>
       <div className="w-full max-w-full box-border" style={{ maxWidth: '100%' }}>
         <div className="overflow-hidden border border-gray-300 rounded-lg w-full" style={{ maxWidth: '100%' }}>
-          <table 
-            className="w-full border-collapse" 
-            style={{ 
-              width: '100%', 
+          <table
+            className="w-full border-collapse"
+            style={{
+              width: '100%',
               tableLayout: 'auto',
               maxWidth: '100%',
               minWidth: 0
             }}
           >
-            <thead className="bg-gray-50">
+            <thead>
               <tr>
-                <th className="px-2 py-1.5 text-xs font-bold text-gray-800 text-right border-r border-b border-gray-300 whitespace-nowrap">
+                <th className={`${s.name.head} px-2 py-1.5 text-xs font-bold text-gray-800 text-right border-r border-b-2 border-r-gray-300 whitespace-nowrap`}>
                   تعرفه
                 </th>
-                <th className="px-2 py-1.5 text-xs font-bold text-gray-800 text-center border-r border-b border-gray-300">
+                <th className={`${s.readingAtLastCharge.head} px-2 py-1.5 text-xs font-bold text-gray-800 text-center border-r border-b-2 border-r-gray-300`}>
                   <span className="block sm:inline">قرائت زمان آخرین شارژ</span>
                   <span className="hidden sm:inline"> (kWh)</span>
                 </th>
-                <th className="px-2 py-1.5 text-xs font-bold text-gray-800 text-center border-r border-b border-gray-300">
+                <th className={`${s.lastReading.head} px-2 py-1.5 text-xs font-bold text-gray-800 text-center border-r border-b-2 border-r-gray-300`}>
                   <span className="block sm:inline">آخرین قرائت کنتور</span>
                   <span className="hidden sm:inline"> (kWh)</span>
                 </th>
-                <th className="px-2 py-1.5 text-xs font-bold text-gray-800 text-center border-r border-b border-gray-300 whitespace-nowrap">
+                <th className={`${s.consumption.head} px-2 py-1.5 text-xs font-bold text-gray-800 text-center border-r border-b-2 border-r-gray-300 whitespace-nowrap`}>
                   مصرف
                   <span className="hidden sm:inline"> (kWh)</span>
+                </th>
+                <th className={`${s.amount.head} px-2 py-1.5 text-xs font-bold text-gray-800 text-center border-r border-b-2 border-r-gray-300 whitespace-nowrap`}>
+                  مبلغ (ریال)
                 </th>
               </tr>
             </thead>
@@ -51,24 +66,27 @@ export default function TariffTable({ tariffs }: TariffTableProps) {
               {tariffs && tariffs.length > 0 ? (
                 tariffs.map((tariff, index) => (
                   <tr key={index} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-2 py-1.5 text-xs text-gray-800 font-medium border-r border-b border-gray-200 whitespace-nowrap">
+                    <td className={`${s.name.cell} px-2 py-1.5 text-xs text-gray-800 font-medium border-r border-b border-gray-200 whitespace-nowrap`}>
                       {tariff.name}
                     </td>
-                    <td className="px-2 py-1.5 text-xs text-center text-gray-700  border-r border-b border-gray-200 whitespace-nowrap">
+                    <td className={`${s.readingAtLastCharge.cell} px-2 py-1.5 text-xs text-center text-gray-700 border-r border-b border-gray-200 whitespace-nowrap`}>
                       {tariff.readingAtLastCharge.toFixed(2)}
                     </td>
-                    <td className="px-2 py-1.5 text-xs text-gray-700 text-center border-r border-b border-gray-200 whitespace-nowrap">
+                    <td className={`${s.lastReading.cell} px-2 py-1.5 text-xs text-gray-700 text-center border-r border-b border-gray-200 whitespace-nowrap`}>
                       {tariff.lastReading.toFixed(2)}
                     </td>
-                    <td className="px-2  py-1.5 text-xs text-blue-600 border-r font-semibold text-center border-b border-gray-200 whitespace-nowrap">
+                    <td className={`${s.consumption.cell} px-2 py-1.5 text-xs text-purple-700 border-r font-semibold text-center border-b border-gray-200 whitespace-nowrap`}>
                       {tariff.consumption.toFixed(2)}
+                    </td>
+                    <td className={`${s.amount.cell} px-2 py-1.5 text-xs text-rose-700 border-r font-semibold text-center border-b border-gray-200 whitespace-nowrap`}>
+                      {tariff.amount !== undefined ? tariff.amount.toLocaleString('fa-IR') : '-'}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={5}
                     className="px-2 py-4 text-center text-xs text-gray-500 border-b border-gray-200"
                   >
                     داده‌ای برای نمایش وجود ندارد
@@ -82,4 +100,3 @@ export default function TariffTable({ tariffs }: TariffTableProps) {
     </div>
   );
 }
-

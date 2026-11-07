@@ -47,7 +47,7 @@ export default function BatteryStatsCards({
             <p className="text-gray-600 text-xs sm:text-sm mb-1">مبلغ آخرین پرداختی</p>
             <p className="text-lg sm:text-xl font-bold text-gray-800">
               {formatPersianNumber(lastChargeAmount)}
-              <span className="text-xs sm:text-sm text-gray-600 mr-1">تومان</span>
+              <span className="text-xs sm:text-sm text-gray-600 mr-1">ریال</span>
             </p>
           </div>
         </div>
@@ -63,7 +63,7 @@ export default function BatteryStatsCards({
             <p className="text-gray-600 text-xs sm:text-sm mb-1">مانده اعتبار بعد از پرداختی</p>
             <p className="text-lg sm:text-xl font-bold text-gray-800">
               {formatPersianNumber(balanceAfterCharge)}
-              <span className="text-xs sm:text-sm text-gray-600 mr-1">تومان</span>
+              <span className="text-xs sm:text-sm text-gray-600 mr-1">ریال</span>
             </p>
           </div>
         </div>

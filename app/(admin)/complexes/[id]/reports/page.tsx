@@ -9,6 +9,7 @@ import PaymentCardList from '@/app/(admin)/admin-reports/components/PaymentCardL
 import Pagination from '@/app/(admin)/admin-reports/components/Pagination';
 import LoadingState from '@/app/(admin)/admin-reports/components/LoadingState';
 import ErrorState from '@/app/(admin)/admin-reports/components/ErrorState';
+import { authFetch } from '@/lib/authFetch';
 
 export default function ComplexReportsPage() {
   const params = useParams();
@@ -32,7 +33,7 @@ export default function ComplexReportsPage() {
     // Fetch complex name
     const fetchComplexName = async () => {
       try {
-        const response = await fetch('/api/admin/complexes');
+        const response = await authFetch('/api/admin/complexes');
         const data = await response.json();
         if (data.complexes) {
           const complex = data.complexes.find((c: any) => c.id === complexId);
