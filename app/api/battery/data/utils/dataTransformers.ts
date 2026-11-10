@@ -105,7 +105,7 @@ function calculateTariffData(
 
   return [
     {
-      name: 'باری (تعرفه ۱)',
+      name: 'میان بار (تعرفه ۱)',
       readingAtLastCharge: p1AtLastCharge,
       lastReading: p1LastReading,
       consumption: p1Consumption,
@@ -119,7 +119,7 @@ function calculateTariffData(
       amount: amountFor(p2Consumption, 1),
     },
     {
-      name: 'کم باری (تعرفه ۳)',
+      name: 'کم بار (تعرفه ۳)',
       readingAtLastCharge: p3AtLastCharge,
       lastReading: p3LastReading,
       consumption: p3Consumption,

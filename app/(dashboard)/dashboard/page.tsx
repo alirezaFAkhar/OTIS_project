@@ -92,6 +92,7 @@ export default function DashboardPage() {
       <MoreDetailsSection
         data={{
           totalCharge: data.totalCharge,
+          lastChargeDate: data.lastChargeDate,
           lastReadDate: data.lastReadDate,
           voltage: data.voltage,
           amper: data.amper,
